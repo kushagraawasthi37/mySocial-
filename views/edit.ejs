@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Post - Mini Project</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-zinc-900 text-white min-h-screen flex items-center justify-center p-6">
+  <div class="w-full max-w-xl bg-zinc-800 p-8 rounded-2xl shadow-lg border border-zinc-700">
+    <!-- Top bar -->
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-semibold text-yellow-400">✏️ Edit Post</h2>
+      <a href="/logout" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-medium transition">Log
+        out</a>
+    </div>
+
+    <!-- Edit form -->
+    <form action="/update/<%= post._id %>" method="post" class="space-y-4">
+      <textarea name="updatedcontent" rows="5"
+        class="w-full p-4 rounded-lg bg-zinc-900 border border-zinc-700 outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
+        placeholder="What's on your mind?"><%= post.content %></textarea>
+
+      <button type="submit"
+        class="w-full py-3 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-black font-semibold transition">
+        Update Post
+      </button>
+    </form>
+
+    <!-- Back button -->
+    <a href="/profile/<%= post.userId %>"
+      class="mt-4 block text-center w-full py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-medium transition">
+      ⬅ Back to Profile
+    </a>
+  </div>
+</body>
+
+</html>

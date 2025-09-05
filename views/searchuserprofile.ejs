@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= user.username %> - Profile
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-zinc-900 text-white min-h-screen">
+    <header class="flex justify-between items-center px-8 py-4 bg-zinc-800 shadow-md mb-8">
+
+        <h1 class="text-2xl font-bold text-blue-400">MySocial</h1>
+
+        <div class="flex items-end ">
+            <!-- Search form -->
+            <form action="/search/user" method="GET" class="flex items-center space-x-2">
+                <button type="submit"
+                    class="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-lg text-sm font-medium transition mx-3 ">
+                    Search
+                </button>
+            </form>
+            <div class="space-x-4 flex items-center">
+                <a href="/feed"
+                    class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg text-sm font-semibold transition">Feed</a>
+
+                <!-- Dropdown for account actions -->
+                <div class="relative">
+                    <button id="accountDropdownBtn"
+                        class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-semibold transition">
+                        Account ⚙️
+                    </button>
+
+                    <div id="accountDropdownMenu"
+                        class="hidden absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50">
+                        <a href="/logout"
+                            class="block px-4 py-2 text-white hover:bg-red-600 rounded-t-lg transition">Logout</a>
+                        <a href="/delete-account/<%=user.username%>"
+                            class="block px-4 py-2 text-white hover:bg-red-700 rounded-b-lg transition">Delete
+                            Account</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+
+
+    <!-- Profile Section -->
+    <main class="max-w-4xl mx-auto p-6">
+        <div class="flex items-center space-x-4 mb-8">
+            <div class="w-16 h-16 rounded-full overflow-hidden">
+                <% if (user.profilePhoto) { %>
+                    <img src="<%= user.profilePhoto %>" alt="<%= user.username %>" class="w-full h-full object-cover">
+                    <% } else { %>
+                        <div
+                            class="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-xl font-bold">
+                            <%= user.name[0].toUpperCase() %>
+                        </div>
+                        <% } %>
+            </div>
+            <div>
+                <h2 class="text-3xl font-semibold">
+                    <%= user.name %>
+                </h2>
+                <p class="text-zinc-400">@<%= user.username %> • Age <%= user.age %>
+                </p>
+            </div>
+        </div>
+
+        <!-- User Posts -->
+        <section>
+            <h3 class="text-xl font-semibold text-zinc-300 mb-4">
+                <%= user.username %> Posts
+            </h3>
+            <div class="space-y-4">
+                <% if (user.posts && user.posts.length> 0) { %>
+                    <% user.posts.slice().reverse().forEach(function(post){ %>
+                        <div class="p-5 bg-zinc-800 rounded-lg border border-zinc-700 shadow-md">
+                            <div class="flex items-start gap-3 mb-2">
+                                <!-- Post author profile -->
+                                <div class="w-10 h-10 rounded-full overflow-hidden">
+                                    <% if (user.profilePhoto) { %>
+                                        <img src="<%= user.profilePhoto %>" alt="<%= user.username %>"
+                                            class="w-full h-full object-cover">
+                                        <% } else { %>
+                                            <div
+                                                class="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-sm font-bold">
+                                                <%= user.name[0].toUpperCase() %>
+                                            </div>
+                                            <% } %>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="text-blue-400 font-semibold">@<%= user.username %>
+                                        </h4>
+                                        <small class="text-zinc-500">
+                                            <%= post.date ? post.date.toDateString() : '' %>
+                                        </small>
+                                    </div>
+                                    <p class="text-sm leading-relaxed mb-3">
+                                        <%= post.content %>
+                                    </p>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <a href="/like/<%= post._id %>"
+                                            class="text-blue-500 hover:underline transition">
+                                            <%= (post.likes && post.likes.includes(user._id)) ? "Unlike" : "Like" %>
+                                        </a>
+                                        <span class="text-zinc-400">
+                                            <%= (post.likes ? post.likes.length : 0) %> likes
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <% }) %>
+                            <% } else { %>
+                                <p class="text-zinc-400">No posts yet.</p>
+                                <% } %>
+            </div>
+        </section>
+    </main>
+</body>
+<script>
+    const accountDropdownBtn = document.getElementById('accountDropdownBtn');
+    const accountDropdownMenu = document.getElementById('accountDropdownMenu');
+
+    accountDropdownBtn.addEventListener('click', () => {
+        accountDropdownMenu.classList.toggle('hidden');
+    });
+
+    // Close dropdown if clicked outside
+    window.addEventListener('click', (e) => {
+        if (!accountDropdownBtn.contains(e.target) && !accountDropdownMenu.contains(e.target)) {
+            accountDropdownMenu.classList.add('hidden');
+        }
+    });
+</script>
+
+</html>

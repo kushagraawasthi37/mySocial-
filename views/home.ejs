@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - MySocial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-zinc-900 text-white flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md bg-zinc-800 rounded-2xl shadow-lg p-8">
+
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-blue-400">Join MySocial 🚀</h1>
+            <p class="text-zinc-400 mt-2">Create an account to connect with friends</p>
+        </div>
+
+        <!-- Flash Message -->
+        <% if (message) { %>
+            <div id="flash-message"
+                class="<%= message.includes('successfully') ? 'bg-green-500' : 'bg-red-500' %> text-white p-3 rounded-lg mb-4 text-center font-medium shadow-md">
+                <%= message %>
+            </div>
+            <% } %>
+
+                <!-- Form -->
+                <form action="/register" method="post" class="space-y-4">
+                    <input type="text" name="name" placeholder="Full Name" required
+                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+
+                    <input type="text" name="username" placeholder="Username" required
+                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+
+                    <input type="password" name="password" placeholder="Password" required
+                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+
+                    <input type="email" name="email" placeholder="Email Address" required
+                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+
+                    <input type="number" name="age" placeholder="Age" required
+                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+
+                    <button type="submit"
+                        class="w-full py-3 bg-blue-500 hover:bg-blue-600 rounded-lg font-semibold text-lg transition">
+                        Create Account
+                    </button>
+                </form>
+
+                <!-- Footer -->
+                <p class="text-center text-zinc-400 mt-6">
+                    Already have an account?
+                    <a href="/login" class="text-blue-400 hover:underline">Login here</a>
+                </p>
+    </div>
+
+    <!-- Auto-hide Flash Message -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const flash = document.getElementById('flash-message');
+            if (flash) {
+                setTimeout(() => {
+                    flash.style.transition = "opacity 0.5s ease-out";
+                    flash.style.opacity = '0';
+                    setTimeout(() => flash.remove(), 500);
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+
+</html>

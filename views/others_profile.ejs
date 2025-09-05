@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= user.username %> - Profile
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-zinc-900 text-white min-h-screen">
+    <!-- Navbar -->
+    <header class="flex justify-between items-center px-8 py-4 bg-zinc-800 shadow-md">
+        <h1 class="text-2xl font-bold text-blue-400">MySocial</h1>
+
+        <!-- Search form -->
+        <form action="/search/user" method="GET" class="flex items-center space-x-2">
+            <input type="text" name="username" placeholder="Search users..."
+                class="px-3 py-1 rounded-lg bg-zinc-700 text-white focus:ring-2 focus:ring-blue-400 outline-none">
+            <button type="submit" class="px-3 py-1 bg-blue-500 hover:bg-blue-600 rounded-lg text-white">
+                Search
+            </button>
+        </form>
+
+        <div class="space-x-4 flex items-center">
+            <a href="/feed"
+                class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg text-sm font-semibold transition">Feed</a>
+
+            <!-- Dropdown for account actions -->
+            <div class="relative">
+                <button id="accountDropdownBtn"
+                    class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-semibold transition">
+                    Account ⚙️
+                </button>
+
+                <div id="accountDropdownMenu"
+                    class="hidden absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50">
+                    <a href="/logout"
+                        class="block px-4 py-2 text-white hover:bg-red-600 rounded-t-lg transition">Logout</a>
+                    <a href="/delete-account/<%=user.username%>"
+                        class="block px-4 py-2 text-white hover:bg-red-700 rounded-b-lg transition">Delete Account</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+
+
+    <!-- Profile Section -->
+    <main class="max-w-4xl mx-auto p-6">
+        <div class="flex items-center space-x-4 mb-8">
+            <div
+                class="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-xl font-bold">
+                <%= user.name[0].toUpperCase() %>
+            </div>
+            <div>
+                <h2 class="text-3xl font-semibold">
+                    <%= user.name %>
+                </h2>
+                <p class="text-zinc-400">@<%= user.username %> • Age <%= user.age %>
+                </p>
+            </div>
+        </div>
+
+
+        <!-- User Posts -->
+        <section>
+            <h3 class="text-xl font-semibold text-zinc-300 mb-4">
+                <%= user.username %> Posts
+            </h3>
+            <div class="space-y-4">
+                <% user.posts.slice().reverse().forEach(function(post){ %>
+                    <div class="p-5 bg-zinc-800 rounded-lg border border-zinc-700 shadow-md">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-blue-400 font-semibold">@<%= user.username %>
+                            </h4>
+                            <small class="text-zinc-500">
+                                <%= post.date ? post.date.toDateString() : '' %>
+                            </small>
+                        </div>
+                        <p class="text-sm leading-relaxed mb-3">
+                            <%= post.content %>
+                        </p>
+                        <div class="flex items-center justify-between text-sm">
+                            <a href="/like/<%= post._id %>" class="text-blue-500 hover:underline transition">
+                                <%= post.likes.indexOf(user._id)===-1 ? "Like" : "Unlike" %>
+                            </a>
+                            <span class="text-zinc-400">
+                                <%= post.likes.length %> likes
+                            </span>
+                        </div>
+                    </div>
+                    <% }) %>
+            </div>
+        </section>
+    </main>
+</body>
+
+</html>

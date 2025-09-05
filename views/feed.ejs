@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feed</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-zinc-900 text-white min-h-screen p-6">
+  <!-- Top Bar -->
+  <header class="flex justify-between items-center px-8 py-4 bg-zinc-800 shadow-md mb-8">
+    <h1 class="text-3xl font-bold text-yellow-400">🌐 Feed</h1>
+
+    <div class="flex items-end">
+      <!-- Search form -->
+      <form action="/search/user" method="GET" class="flex items-center space-x-2">
+        <button type="submit"
+          class="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-lg text-sm font-medium transition mx-3">
+          Search
+        </button>
+      </form>
+
+      <div class="space-x-4 flex items-center">
+        <a href="/profile" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg text-sm font-medium transition">My
+          Profile</a>
+
+        <!-- Dropdown for account actions -->
+        <div class="relative">
+          <button id="accountDropdownBtn"
+            class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-semibold transition">
+            Account ⚙️
+          </button>
+
+          <div id="accountDropdownMenu"
+            class="hidden absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50">
+            <a href="/logout" class="block px-4 py-2 text-white hover:bg-red-600 rounded-t-lg transition">Logout</a>
+            <a href="/delete-account/<%= user.username %>"
+              class="block px-4 py-2 text-white hover:bg-red-700 rounded-b-lg transition">Delete Account</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Posts Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <% posts.forEach(post=> { %>
+      <div
+        class="p-6 bg-zinc-800 rounded-2xl shadow-md border border-zinc-700 hover:border-yellow-400 transition duration-200">
+        <!-- User -->
+        <div class="flex items-center mb-3">
+          <div
+            class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-sm font-bold">
+            <%= post.user.username.charAt(0).toUpperCase() %>
+          </div>
+          <h3 class="ml-3 text-lg font-semibold text-blue-400">
+            <a href="/feed/profile/<%= post.user.username %>" target="_blank">
+              <%= post.user.username %>
+            </a>
+          </h3>
+        </div>
+
+        <!-- Content -->
+        <p class="mb-4 text-zinc-300 leading-relaxed">
+          <%= post.content %>
+        </p>
+
+        <!-- Actions -->
+        <div class="flex justify-between items-center text-sm">
+          <span class="text-zinc-400">
+            <%= (post.likes || []).filter(like=> like != null).length %> ❤️
+          </span>
+
+          <% const safeLikes=(post.likes || []).filter(like=> like != null).map(like => like.toString());
+            const hasLiked = safeLikes.includes(userId);
+            %>
+            <% if (hasLiked) { %>
+              <a href="/like/<%= post._id %>"
+                class="px-3 py-1 rounded-lg bg-green-600 hover:bg-green-700 transition text-white font-medium">Liked</a>
+              <% } else { %>
+                <a href="/like/<%= post._id %>"
+                  class="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 transition text-white font-medium">Like</a>
+                <% } %>
+        </div>
+      </div>
+      <% }) %>
+  </div>
+</body>
+
+<script>
+  const accountDropdownBtn = document.getElementById('accountDropdownBtn');
+  const accountDropdownMenu = document.getElementById('accountDropdownMenu');
+
+  accountDropdownBtn.addEventListener('click', () => {
+    accountDropdownMenu.classList.toggle('hidden');
+  });
+
+  // Close dropdown if clicked outside
+  window.addEventListener('click', (e) => {
+    if (!accountDropdownBtn.contains(e.target) && !accountDropdownMenu.contains(e.target)) {
+      accountDropdownMenu.classList.add('hidden');
+    }
+  });
+</script>
+
+</html>
