@@ -1,6 +1,7 @@
-const postModel = require("../models/post");
-const userModel = require("../models/user");
+const postModel = require("../models/post.js");
+const userModel = require("../models/user.js");
 const jwt = require("jsonwebtoken");
+const {uploadOnCloudinary} = require("../utils/cloudinary.js");
 
 // -------- PROFILE PAGE --------
 exports.getProfile = async (req, res) => {
@@ -171,5 +172,74 @@ exports.deleteAccountAction = async (req, res) => {
     console.error("Delete account action error:", err);
     req.flash("error_msg", "Something went wrong. Please try again.");
     res.redirect("/feed");
+  }
+};
+
+exports.uploadProfilephoto = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const avatarLocalPath = req.file.path;
+    const profile = await uploadOnCloudinary(avatarLocalPath);
+
+    if (!profile?.url) {
+      return res
+        .status(400)
+        .json({ error: "Error while uploading the profile" });
+    }
+
+    const updatedUser = await userModel
+      .findByIdAndUpdate(
+        req.user._id,
+        { $set: { avatar: profile.url } },
+        { new: true }
+      )
+      .select("-password");
+
+    return res.status(200).json({
+      message: "Avatar updated successfully",
+      user: updatedUser,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+exports.updateUsercoverImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No cover image uploaded" });
+    }
+
+    const coverImageLocalPath = req.file.path;
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+    if (!coverImage?.url) {
+      return res
+        .status(400)
+        .json({ error: "Error while uploading coverImage" });
+    }
+
+    const updatedUser = await userModel
+      .findByIdAndUpdate(
+        req.user._id,
+        { $set: { coverImage: coverImage.url } },
+        { new: true }
+      )
+      .select("-password");
+
+    return res.status(200).json({
+      message: "Cover image updated successfully",
+      user: updatedUser,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 };

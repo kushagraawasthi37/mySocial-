@@ -5,6 +5,16 @@ const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema(
   {
+    avatar: {
+      type: String,
+      default: "/public/Images/default/avatar.png",
+    },
+
+    coverImage: {
+      type: String,
+      default: "", //make it optional
+    },
+
     
     // Basic info
     username: {

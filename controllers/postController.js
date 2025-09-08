@@ -1,21 +1,46 @@
-const userModel = require("../models/user");
-const postModel = require("../models/post");
+const userModel = require("../models/user.js");
+const postModel = require("../models/post.js");
+const uploadOnCloudinary = require("../utils/cloudinary.js");
 
 exports.createPost = async (req, res) => {
   try {
-    const user = await userModel.findOne({ email: req.user.email });
+    const { content, email } = req.body;
+    const fileContent = req.file?.path || null; // ✅ Ensure at least text or file is present
+
+    // ✅ Check: must have either text OR file
+    if (!content && !fileContent) {
+      return res
+        .status(400)
+        .json({ error: "Post must have either text or an image" });
+    }
+
+    const user = await userModel.findOne({ email });
     if (!user) return res.status(404).send("User not found");
 
     //Post save kr diya
     const post = await postModel.create({
       user: user._id,
-      content: req.body.content,
+      content,
+      fileContent,
     });
 
     //user mai post  ko update kr diya
     user.posts.push(post._id);
     await user.save();
     res.redirect("/profile");
+
+    // ✅ Respond with both user + new post
+    // res.status(201).json({
+    //   message: "Post created successfully",
+    //   post,
+    //   user: {
+    //     _id: user._id,
+    //     email: user.email,
+    //     username: user.username,
+    //     posts: user.posts,
+    //   },
+    // });
+
   } catch (err) {
     console.error("Error in /post:", err);
     res.status(500).send("Server Error");

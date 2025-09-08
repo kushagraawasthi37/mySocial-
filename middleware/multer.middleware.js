@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
       folder = "public/images/profile";
     } else if (file.fieldname === "coverImage") {
       folder = "public/images/coverImage";
-    } else if (file.fieldname === "post") {
+    } else if (file.fieldname === "fileContent") {
       folder = "public/images/posts";
     }
 
