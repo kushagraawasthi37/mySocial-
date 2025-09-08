@@ -44,10 +44,10 @@ exports.getProfile = async (req, res) => {
 exports.getFeed = async (req, res) => {
   try {
     const posts = await postModel
-      .find() //Get all posts from DB
-      .populate("user") //Replace user ID with full user document
-      .sort({ createdAt: -1 }); //Sort posts by newest first
-
+      .find() // Get all posts
+      .populate("user", "username avatar") // only fetch username and avatar
+      .sort({ createdAt: -1 })
+      .lean(); // optional but recommended for EJS
     //  Sorts the posts by createdAt field.
     // -1 → descending order → newest posts first.
     // 1 → ascending order → oldest posts first.
@@ -123,7 +123,7 @@ exports.viewOtherProfile = async (req, res) => {
 // -------- DELETE ACCOUNT PAGE --------
 exports.deleteAccountPage = async (req, res) => {
   try {
-    const user = await userModel.findOne({ username: req.params.username });
+    const user = await userModel.findById(req.user._id);
     if (!user) return res.status(404).send("User not found");
 
     res.render("deleteAccount", { user });
@@ -141,13 +141,31 @@ exports.deleteAccountAction = async (req, res) => {
     if (!confirmCheck || confirmText !== "DELETE")
       return res.status(400).send("You must confirm deletion");
 
-    const deletedUser = await userModel.findOneAndDelete({
-      username: req.params.username,
-    });
-    
+    // Find and delete the user
+    const deletedUser = await userModel.findByIdAndDelete(req.user._id);
+
     if (!deletedUser) return res.status(404).send("User not found");
 
-    req.flash("success_msg", "Account deleted successfully.");
+    // Delete all posts by this user
+    await postModel.deleteMany({ user: deletedUser._id });
+
+    // if (deletedUser.avatarPublicId) {
+    //   await cloudinary.uploader.destroy(deletedUser.avatarPublicId);
+    // }
+
+    // const posts = await postModel.find({ user: deletedUser._id });
+    // for (const post of posts) {
+    //   if (post.post_file_public_id) {
+    //     await cloudinary.uploader.destroy(post.post_file_public_id, {
+    //       resource_type: "auto",
+    //     });
+    //   }
+    // }
+
+    req.flash(
+      "success_msg",
+      "Account and all your posts deleted successfully."
+    );
     res.redirect("/login");
   } catch (err) {
     console.error("Delete account action error:", err);

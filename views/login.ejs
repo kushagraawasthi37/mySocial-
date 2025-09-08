@@ -15,50 +15,52 @@
         <h2 class="text-3xl font-bold text-center mb-6">Login</h2>
 
         <!-- Flash Messages -->
-        <% if (typeof success_msg !== "undefined" && success_msg) { %>
+        <% if (typeof success_msg !=="undefined" && success_msg) { %>
             <div class="flash-message bg-green-500 text-white p-3 rounded-lg mb-4 text-center font-medium shadow-md">
                 <%= success_msg %>
             </div>
-        <% } %>
+            <% } %>
 
-        <% if (typeof error_msg !== "undefined" && error_msg) { %>
-            <div class="flash-message bg-red-500 text-white p-3 rounded-lg mb-4 text-center font-medium shadow-md">
-                <%= error_msg %>
-            </div>
-        <% } %>
+                <% if (typeof error_msg !=="undefined" && error_msg) { %>
+                    <div
+                        class="flash-message bg-red-500 text-white p-3 rounded-lg mb-4 text-center font-medium shadow-md">
+                        <%= error_msg %>
+                    </div>
+                    <% } %>
 
-        <% if (typeof message !== "undefined" && message) { %>
-            <div class="flash-message bg-yellow-500 text-white p-3 rounded-lg mb-4 text-center font-medium shadow-md">
-                <%= message %>
-            </div>
-        <% } %>
+                        <% if (typeof message !=="undefined" && message) { %>
+                            <div
+                                class="flash-message bg-yellow-500 text-white p-3 rounded-lg mb-4 text-center font-medium shadow-md">
+                                <%= message %>
+                            </div>
+                            <% } %>
 
-        <!-- Form -->
-        <form action="/login" method="post" class="space-y-4">
-            <input type="email" name="email" placeholder="Email Address" required
-                class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+                                <!-- Form -->
+                                <form action="/login" method="post" class="space-y-4">
+                                    <input type="email" name="email" placeholder="Email Address" required
+                                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
 
-            <input type="password" name="password" placeholder="Password" required
-                class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+                                    <input type="password" name="password" placeholder="Password" required
+                                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
 
-            <!-- Forgot Password Link -->
-            <div class="text-right">
-                <a href="/forgot-password" class="text-blue-400 hover:underline text-sm">
-                    Forgot Password?
-                </a>
-            </div>
+                                    <!-- Forgot Password Link -->
+                                    <div class="text-right">
+                                        <a href="/forgot-password" class="text-blue-400 hover:underline text-sm">
+                                            Forgot Password?
+                                        </a>
+                                    </div>
 
-            <button type="submit"
-                class="w-full py-3 bg-blue-500 hover:bg-blue-600 rounded-lg font-semibold text-lg transition">
-                Login
-            </button>
-        </form>
+                                    <button type="submit"
+                                        class="w-full py-3 bg-blue-500 hover:bg-blue-600 rounded-lg font-semibold text-lg transition">
+                                        Login
+                                    </button>
+                                </form>
 
-        <!-- Footer -->
-        <p class="text-center text-zinc-400 mt-6">
-            Don’t have an account?
-            <a href="/register" class="text-blue-400 hover:underline">Register here</a>
-        </p>
+                                <!-- Footer -->
+                                <p class="text-center text-zinc-400 mt-6">
+                                    Don’t have an account?
+                                    <a href="/register" class="text-blue-400 hover:underline">Register here</a>
+                                </p>
     </div>
 
     <!-- Auto-hide flash messages -->

@@ -14,8 +14,16 @@ router.get(
 router.get("/search/user", userController.searchPage);
 router.post("/search/user", userController.searchUsers);
 
-router.get("/delete-account/:username", userController.deleteAccountPage);
-router.post("/delete-account/:username", userController.deleteAccountAction);
+router.get(
+  "/delete-account/:username",
+  isLoggedIn,
+  userController.deleteAccountPage
+);
+router.post(
+  "/delete-account/:username",
+  isLoggedIn,
+  userController.deleteAccountAction
+);
 
 // Route to view another user's profile
 router.get("/user/:username", userController.viewOtherProfile);
