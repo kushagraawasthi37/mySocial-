@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
 const { isLoggedIn } = require("../utils/middleware");
+const { upload } = require("../middleware/multer.middleware");
 
 router.get("/profile", isLoggedIn, userController.getProfile);
 router.get("/feed", isLoggedIn, userController.getFeed);
@@ -23,6 +24,18 @@ router.post(
   "/delete-account/:username",
   isLoggedIn,
   userController.deleteAccountAction
+);
+router.post(
+  "/profile/photo",
+  isLoggedIn,
+  upload.single("avatar"),
+  userController.uploadProfilephoto
+);
+router.post(
+  "/profile/cover",
+  isLoggedIn,
+  upload.single("coverImage"),
+  userController.updateUsercoverImage
 );
 
 // Route to view another user's profile
