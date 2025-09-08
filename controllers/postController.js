@@ -64,7 +64,7 @@ exports.deletePost = async (req, res) => {
   if (!user) return res.status(404).send("User not found");
 
   ///remove the post from the user post
-  //Must have to convert both to string because two object id can never be the same 
+  //Must have to convert both to string because two object id can never be the same
   user.posts = user.posts.filter((p) => p.toString() !== post._id.toString());
 
   //can also do this

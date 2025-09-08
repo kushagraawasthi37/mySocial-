@@ -5,18 +5,7 @@ const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema(
   {
-    // Avatar
-    avatar: {
-      type: {
-        url: String,
-        localpath: String,
-      },
-      default: {
-        url: "https://placehold.co/200x200",
-        localpath: "",
-      },
-    },
-
+    
     // Basic info
     username: {
       type: String,
@@ -29,7 +18,7 @@ const userSchema = new mongoose.Schema(
 
     name: { type: String, trim: true },
     age: { type: Number },
-    
+
     email: {
       type: String,
       required: true,
