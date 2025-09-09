@@ -14,17 +14,15 @@ exports.getForgotPassword = (req, res) => res.render("forgot-password");
 
 // -------- REGISTER USER --------
 exports.registerUser = async (req, res) => {
-  try {
-    const { email, username, password, name, age } = req.body;
+  const { email, username, password, name, age } = req.body;
 
+  let tempUser;
+
+  try {
     // Check if user already exists
-    let existingUser = await User.findOne({ $or: [{ email }, { username }] }); //$or is a query operator in MongoDB.It allows you to match documents that satisfy at least one condition from an array of conditions.Think of it like a logical OR in programming: condition1 || condition2.
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      req.flash(
-        "error_msg",
-        "User already exists. Please login."
-        // "Have  a good day": more message can be passed it retrieve the array
-      );
+      req.flash("error_msg", "User already exists. Please login.");
       return res.redirect("/login");
     }
 
@@ -34,10 +32,10 @@ exports.registerUser = async (req, res) => {
       .createHash("sha256")
       .update(unHashedToken)
       .digest("hex");
-    const tokenExpiry = Date.now() + 3 * 60 * 1000; //3 mins
+    const tokenExpiry = Date.now() + 3 * 60 * 1000; // 3 minutes
 
-    //Create  a temp user until Email verification not saved
-    const tempUser = new User({
+    // Create a temp user
+    tempUser = new User({
       email,
       username,
       name,
@@ -47,19 +45,18 @@ exports.registerUser = async (req, res) => {
       emailVerificationExpiry: tokenExpiry,
       isEmailVerified: false,
     });
-
     await tempUser.save();
 
-    // Send verification email
+    // Prepare verification email
     const verificationURL = `${req.protocol}://${req.get(
       "host"
     )}/verify-email/${unHashedToken}`;
-
     const emailContent = emailVerificationMailgenContent(
       username,
       verificationURL
     );
 
+    // Send verification email
     await sendEmail({
       email,
       subject: "Verify Your Email",
@@ -72,12 +69,22 @@ exports.registerUser = async (req, res) => {
       "success_msg",
       "Verification email sent! Please check your inbox."
     );
-
-    res.redirect("/login");
+    return res.redirect("/login");
   } catch (err) {
-    console.error(err);
+    console.error("Registration/Error sending email:", err);
+
+    // Delete temp user if exists
+    if (tempUser && tempUser._id) {
+      try {
+        await User.findByIdAndDelete(tempUser._id);
+        console.log("🗑️ Temp user deleted due to failure.");
+      } catch (delErr) {
+        console.error("Failed to delete temp user:", delErr);
+      }
+    }
+
     req.flash("error_msg", "Something went wrong. Please try again.");
-    res.redirect("/register");
+    return res.redirect("/register");
   }
 };
 
@@ -85,31 +92,41 @@ exports.registerUser = async (req, res) => {
 exports.verifyEmail = async (req, res) => {
   try {
     const token = req.params.token;
-    //Convert this token into hashed token
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
-    const user = await User.findOne({
-      emailVerificationToken: hashedToken,
-      emailVerificationExpiry: { $gt: Date.now() }, //$gt stands for “greater than”.It is used in queries to find documents where a field’s value is greater than a specified value.
-    });
+    const user = await User.findOne({ emailVerificationToken: hashedToken });
 
     if (!user) {
-      req.flash("error_msg", "Invalid or expired verification link.");
+      req.flash("error_msg", "Invalid verification link.");
       return res.redirect("/login");
     }
 
+    // Check if token has expired
+    if (user.emailVerificationExpiry < Date.now()) {
+      // Delete temp user
+      await User.findByIdAndDelete(user._id);
+      console.log("🗑️ Expired temp user deleted.");
+
+      req.flash(
+        "error_msg",
+        "Verification link has expired. Please register again."
+      );
+      return res.redirect("/register");
+    }
+
+    // Verify the user
     user.isEmailVerified = true;
     user.emailVerificationToken = undefined;
     user.emailVerificationExpiry = undefined;
-    //Wo jo temp user banaya hai usko save kardo
+
     await user.save();
 
     req.flash("success_msg", "Email verified successfully. You can now login.");
-    res.redirect("/login");
+    return res.redirect("/login");
   } catch (err) {
-    console.error(err);
+    console.error("Verify email error:", err);
     req.flash("error_msg", "Something went wrong. Please try again.");
-    res.redirect("/login");
+    return res.redirect("/login");
   }
 };
 

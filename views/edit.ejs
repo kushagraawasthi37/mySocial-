@@ -18,10 +18,18 @@
     </div>
 
     <!-- Edit form -->
-    <form action="/update/<%= post._id %>" method="post" class="space-y-4">
+    <form action="/update/<%= post._id %>" method="post" enctype="multipart/form-data" class="space-y-4">
       <textarea name="updatedcontent" rows="5"
         class="w-full p-4 rounded-lg bg-zinc-900 border border-zinc-700 outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
         placeholder="What's on your mind?"><%= post.content %></textarea>
+
+      <!-- Image input -->
+      <div>
+        <label class="block mb-2 text-sm font-medium text-white">Update Image (optional)</label>
+        <input type="file" name="fileContent"
+          class="w-full text-sm text-white file:bg-zinc-700 file:border-0 file:rounded-lg file:px-3 file:py-2 file:text-sm file:font-medium file:hover:bg-yellow-400 transition"
+          accept="image/*">
+      </div>
 
       <button type="submit"
         class="w-full py-3 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-black font-semibold transition">

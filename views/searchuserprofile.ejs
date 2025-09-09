@@ -12,10 +12,9 @@
 
 <body class="bg-zinc-900 text-white min-h-screen">
     <header class="flex justify-between items-center px-8 py-4 bg-zinc-800 shadow-md mb-8">
-
         <h1 class="text-2xl font-bold text-blue-400">MySocial</h1>
 
-        <div class="flex items-end ">
+        <div class="flex items-end">
             <!-- Search form -->
             <form action="/search/user" method="GET" class="flex items-center space-x-2">
                 <button type="submit"
@@ -47,19 +46,16 @@
         </div>
     </header>
 
-
-
-
     <!-- Profile Section -->
     <main class="max-w-4xl mx-auto p-6">
         <div class="flex items-center space-x-4 mb-8">
             <div class="w-16 h-16 rounded-full overflow-hidden">
-                <% if (user.profilePhoto) { %>
-                    <img src="<%= user.profilePhoto %>" alt="<%= user.username %>" class="w-full h-full object-cover">
+                <% if (user.avatar) { %>
+                    <img src="<%= user.avatar %>" alt="<%= user.username %>" class="w-full h-full object-cover">
                     <% } else { %>
                         <div
                             class="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-xl font-bold">
-                            <%= user.name[0].toUpperCase() %>
+                            <%= user.username[0].toUpperCase() %>
                         </div>
                         <% } %>
             </div>
@@ -84,13 +80,13 @@
                             <div class="flex items-start gap-3 mb-2">
                                 <!-- Post author profile -->
                                 <div class="w-10 h-10 rounded-full overflow-hidden">
-                                    <% if (user.profilePhoto) { %>
-                                        <img src="<%= user.profilePhoto %>" alt="<%= user.username %>"
+                                    <% if (user.avatar) { %>
+                                        <img src="<%= user.avatar %>" alt="<%= user.username %>"
                                             class="w-full h-full object-cover">
                                         <% } else { %>
                                             <div
                                                 class="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-sm font-bold">
-                                                <%= user.name[0].toUpperCase() %>
+                                                <%= user.username[0].toUpperCase() %>
                                             </div>
                                             <% } %>
                                 </div>
@@ -108,7 +104,12 @@
                                     <div class="flex items-center justify-between text-sm">
                                         <a href="/like/<%= post._id %>"
                                             class="text-blue-500 hover:underline transition">
-                                            <%= (post.likes && post.likes.includes(user._id)) ? "Unlike" : "Like" %>
+                                            <% if (loggedInUserId && post.likes && post.likes.map(l=>
+                                                l.toString()).includes(loggedInUserId)) { %>
+                                                Unlike
+                                                <% } else { %>
+                                                    Like
+                                                    <% } %>
                                         </a>
                                         <span class="text-zinc-400">
                                             <%= (post.likes ? post.likes.length : 0) %> likes
@@ -125,6 +126,7 @@
         </section>
     </main>
 </body>
+
 <script>
     const accountDropdownBtn = document.getElementById('accountDropdownBtn');
     const accountDropdownMenu = document.getElementById('accountDropdownMenu');
