@@ -26,7 +26,7 @@ router.post(
   userController.deleteAccountAction
 );
 router.post(
-  "/profile/photo",
+  "/profile/upload-avatar",
   isLoggedIn,
   upload.single("avatar"),
   userController.uploadProfilephoto

@@ -7,15 +7,14 @@ const userSchema = new mongoose.Schema(
   {
     avatar: {
       type: String,
-      default: "/public/Images/default/avatar.png",
+      default: "/Images/default/avatar.png",
     },
 
     coverImage: {
       type: String,
-      default: "", //make it optional
+      default: "/Images/default/banner.png", //make it optional
     },
 
-    
     // Basic info
     username: {
       type: String,

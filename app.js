@@ -16,7 +16,6 @@ const authRoutes = require("./routes/authRoutes");
 const postRoutes = require("./routes/postRoutes");
 const userRoutes = require("./routes/userRoutes");
 
-
 const app = express();
 
 // View engine
@@ -76,6 +75,20 @@ app.use((req, res, next) => {
 app.use("/", authRoutes);
 app.use("/", postRoutes);
 app.use("/", userRoutes);
+
+// Cleanup expired temp users every 1 hour
+setInterval(async () => {
+  try {
+    const result = await User.deleteMany({
+      isEmailVerified: false,
+      emailVerificationExpiry: { $lt: Date.now() },
+    });
+    if (result.deletedCount > 0)
+      console.log(`🗑️ Cleaned up ${result.deletedCount} expired temp users`);
+  } catch (err) {
+    console.error("Cleanup error:", err);
+  }
+}, 60 * 60 * 1000); // every 1 hour
 
 // Server
 const PORT = process.env.PORT || 3000;

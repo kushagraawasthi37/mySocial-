@@ -1,32 +1,19 @@
-const postModel = require("../models/post.js");
 const userModel = require("../models/user.js");
-const jwt = require("jsonwebtoken");
-const {uploadOnCloudinary} = require("../utils/cloudinary.js");
+const postModel = require("../models/post.js");
+const { uploadOnCloudinary } = require("../utils/cloudinary.js");
 
 // -------- PROFILE PAGE --------
 exports.getProfile = async (req, res) => {
   try {
-    const user = req.user; // Already fetched by middleware
-
-    // Optional: populate posts and likes if needed
     const populatedUser = await userModel
-      .findById(user._id)
-      .populate("posts") // populate posts
+      .findById(req.user._id)
       .populate({
-        path: "posts.likes", // populate likes inside posts
-        select: "_id", // only get the _id of likes
+        path: "posts",
+        select: "content fileContent likes user date",
+        options: { sort: { date: -1 } }, // newest posts first
+        populate: { path: "user", select: "username avatar" },
       })
       .lean();
-
-    //Aisa format dega
-    //       {
-    //   _id: "64f2abc123...",
-    //   username: "john",
-    //   posts: [
-    //     { _id: "post1id", title: "Post 1", likes: [{ _id: "user2id" }, { _id: "user3id" }] },
-    //     { _id: "post2id", title: "Post 2", likes: [{ _id: "user3id" }] }
-    //   ]
-    // }
 
     res.render("profile", {
       user: populatedUser,
@@ -44,19 +31,16 @@ exports.getProfile = async (req, res) => {
 // -------- FEED PAGE --------
 exports.getFeed = async (req, res) => {
   try {
-    const posts = await postModel
-      .find() // Get all posts
-      .populate("user", "username avatar") // only fetch username and avatar
-      .sort({ createdAt: -1 })
-      .lean(); // optional but recommended for EJS
-    //  Sorts the posts by createdAt field.
-    // -1 → descending order → newest posts first.
-    // 1 → ascending order → oldest posts first.
-
     if (!req.user) {
       req.flash("error_msg", "You must be logged in to view the feed.");
       return res.redirect("/login");
     }
+
+    const posts = await postModel
+      .find()
+      .populate("user", "username avatar")
+      .sort({ date: -1 })
+      .lean();
 
     res.render("feed", {
       posts,
@@ -80,21 +64,15 @@ exports.searchUsers = async (req, res) => {
     const escapeRegex = (text) =>
       text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 
-    //Regex characters like *, ., ?, [, etc. can break your regex search.
-    //This function escapes all special characters, so the search term is treated as a literal string.
-
     const users = await userModel.find({
       username: { $regex: escapeRegex(searchTerm), $options: "i" },
-      // username: { $regex: ..., $options: "i" } → searches usernames that match the regex.
-      // $options: "i" → case-insensitive search
-      // Regex does partial matching by default.
-      // Returns an array of all matching users.
     });
 
-    if (!users.length)
+    if (!users.length) {
       return res.render("search-user", {
         message: `No results for "${searchTerm}"`,
       });
+    }
 
     res.render("search-user", { users });
   } catch (err) {
@@ -109,11 +87,23 @@ exports.viewOtherProfile = async (req, res) => {
   try {
     const user = await userModel
       .findOne({ username: req.params.username })
-      .populate("posts");
+      .select("username name age avatar coverImage posts")
+      .populate({
+        path: "posts",
+        select: "content fileContent likes user date",
+        options: { sort: { date: -1 } },
+        populate: { path: "user", select: "username avatar" },
+      })
+      .lean();
 
     if (!user) return res.status(404).send("User not found");
 
-    res.render("others_profile", { user });
+    res.render("others_profile", {
+      user,
+      success_msg: res.locals.success_msg,
+      error_msg: res.locals.error_msg,
+      message: res.locals.message,
+    });
   } catch (err) {
     console.error("View profile error:", err);
     req.flash("error_msg", "Something went wrong. Please try again.");
@@ -139,29 +129,14 @@ exports.deleteAccountPage = async (req, res) => {
 exports.deleteAccountAction = async (req, res) => {
   try {
     const { confirmCheck, confirmText } = req.body;
-    if (!confirmCheck || confirmText !== "DELETE")
+    if (!confirmCheck || confirmText !== "DELETE") {
       return res.status(400).send("You must confirm deletion");
+    }
 
-    // Find and delete the user
     const deletedUser = await userModel.findByIdAndDelete(req.user._id);
-
     if (!deletedUser) return res.status(404).send("User not found");
 
-    // Delete all posts by this user
     await postModel.deleteMany({ user: deletedUser._id });
-
-    // if (deletedUser.avatarPublicId) {
-    //   await cloudinary.uploader.destroy(deletedUser.avatarPublicId);
-    // }
-
-    // const posts = await postModel.find({ user: deletedUser._id });
-    // for (const post of posts) {
-    //   if (post.post_file_public_id) {
-    //     await cloudinary.uploader.destroy(post.post_file_public_id, {
-    //       resource_type: "auto",
-    //     });
-    //   }
-    // }
 
     req.flash(
       "success_msg",
@@ -175,71 +150,38 @@ exports.deleteAccountAction = async (req, res) => {
   }
 };
 
+// -------- UPLOAD PROFILE PHOTO --------
 exports.uploadProfilephoto = async (req, res) => {
   try {
-    const user = await userModel.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (!req.file) return res.status(400).send("No file uploaded");
 
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
+    const uploaded = await uploadOnCloudinary(req.file.path);
 
-    const avatarLocalPath = req.file.path;
-    const profile = await uploadOnCloudinary(avatarLocalPath);
-
-    if (!profile?.url) {
-      return res
-        .status(400)
-        .json({ error: "Error while uploading the profile" });
-    }
-
-    const updatedUser = await userModel
-      .findByIdAndUpdate(
-        req.user._id,
-        { $set: { avatar: profile.url } },
-        { new: true }
-      )
-      .select("-password");
-
-    return res.status(200).json({
-      message: "Avatar updated successfully",
-      user: updatedUser,
+    await userModel.findByIdAndUpdate(req.user._id, {
+      avatar: uploaded.secure_url,
     });
+    res.redirect("/profile");
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error("Avatar upload error:", err);
+    req.flash("error_msg", "Error uploading avatar");
+    res.redirect("/profile");
   }
 };
 
+// -------- UPDATE COVER IMAGE --------
 exports.updateUsercoverImage = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No cover image uploaded" });
-    }
+    if (!req.file) return res.status(400).send("No cover image uploaded");
 
-    const coverImageLocalPath = req.file.path;
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+    const uploaded = await uploadOnCloudinary(req.file.path);
 
-    if (!coverImage?.url) {
-      return res
-        .status(400)
-        .json({ error: "Error while uploading coverImage" });
-    }
-
-    const updatedUser = await userModel
-      .findByIdAndUpdate(
-        req.user._id,
-        { $set: { coverImage: coverImage.url } },
-        { new: true }
-      )
-      .select("-password");
-
-    return res.status(200).json({
-      message: "Cover image updated successfully",
-      user: updatedUser,
+    await userModel.findByIdAndUpdate(req.user._id, {
+      coverImage: uploaded.secure_url,
     });
+    res.redirect("/profile");
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error("Cover image update error:", err);
+    req.flash("error_msg", "Error updating cover image");
+    res.redirect("/profile");
   }
 };

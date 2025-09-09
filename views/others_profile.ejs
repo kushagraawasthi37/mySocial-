@@ -11,62 +11,50 @@
 </head>
 
 <body class="bg-zinc-900 text-white min-h-screen">
+
     <!-- Navbar -->
     <header class="flex justify-between items-center px-8 py-4 bg-zinc-800 shadow-md">
         <h1 class="text-2xl font-bold text-blue-400">MySocial</h1>
-
-        <!-- Search form -->
-        <div class="flex items-end ">
-            <!-- Search form -->
-            <form action="/search/user" method="GET" class="flex items-center space-x-2">
-                <button type="submit"
-                    class="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-lg text-sm font-medium transition mx-3 ">
-                    Search
+        <div class="flex items-end space-x-4">
+            <a href="/feed"
+                class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg text-sm font-semibold transition">Feed</a>
+            <div class="relative">
+                <button id="accountDropdownBtn"
+                    class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-semibold transition">
+                    Account ⚙️
                 </button>
-            </form>
-            <div class="space-x-4 flex items-center">
-                <a href="/feed"
-                    class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg text-sm font-semibold transition">Feed</a>
-
-                <!-- Dropdown for account actions -->
-                <div class="relative">
-                    <button id="accountDropdownBtn"
-                        class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-semibold transition">
-                        Account ⚙️
-                    </button>
-
-                    <div id="accountDropdownMenu"
-                        class="hidden absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50">
-                        <a href="/logout"
-                            class="block px-4 py-2 text-white hover:bg-red-600 rounded-t-lg transition">Logout</a>
-                        <a href="/delete-account/<%=user.username%>"
-                            class="block px-4 py-2 text-white hover:bg-red-700 rounded-b-lg transition">Delete
-                            Account</a>
-                    </div>
+                <div id="accountDropdownMenu"
+                    class="hidden absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50">
+                    <a href="/logout"
+                        class="block px-4 py-2 text-white hover:bg-red-600 rounded-t-lg transition">Logout</a>
+                    <a href="/delete-account/<%= user.username %>"
+                        class="block px-4 py-2 text-white hover:bg-red-700 rounded-b-lg transition">Delete Account</a>
                 </div>
             </div>
         </div>
     </header>
 
-
-
-
     <!-- Profile Section -->
     <main class="max-w-4xl mx-auto p-6">
         <div class="flex items-center space-x-4 mb-8">
-            <div
-                class="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-xl font-bold">
-                <%= user.name[0].toUpperCase() %>
-            </div>
-            <div>
-                <h2 class="text-3xl font-semibold">
-                    <%= user.name %>
-                </h2>
-                <p class="text-zinc-400">@<%= user.username %> • Age <%= user.age %>
-                </p>
-            </div>
+            <!-- Avatar -->
+            <% if (user.avatar) { %>
+                <img src="<%= user.avatar %>" alt="Avatar"
+                    class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md">
+                <% } else { %>
+                    <div
+                        class="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-xl font-bold">
+                        <%= user.username.charAt(0).toUpperCase() %>
+                    </div>
+                    <% } %>
+                        <div>
+                            <h2 class="text-3xl font-semibold">
+                                <%= user.name || user.username %>
+                            </h2>
+                            <p class="text-zinc-400">@<%= user.username %> • Age <%= user.age || 'N/A' %>
+                            </p>
+                        </div>
         </div>
-
 
         <!-- User Posts -->
         <section>
@@ -74,46 +62,53 @@
                 <%= user.username %> Posts
             </h3>
             <div class="space-y-4">
-                <% user.posts.slice().reverse().forEach(function(post){ %>
+                <% user.posts.slice().reverse().forEach(function(post) { %>
                     <div class="p-5 bg-zinc-800 rounded-lg border border-zinc-700 shadow-md">
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="text-blue-400 font-semibold">@<%= user.username %>
-                            </h4>
-                            <small class="text-zinc-500">
-                                <%= post.date ? post.date.toDateString() : '' %>
-                            </small>
+                        <div class="flex items-center mb-3">
+                            <% if (post.user && post.user.avatar) { %>
+                                <img src="<%= post.user.avatar %>" alt="Avatar"
+                                    class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md">
+                                <% } else { %>
+                                    <div
+                                        class="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-xl font-bold">
+                                        <%= post.user ? post.user.username.charAt(0).toUpperCase() : "U" %>
+                                    </div>
+                                    <% } %>
+
+                                        <h4 class="ml-3 text-lg font-semibold text-blue-400">
+                                            @<%= post.user ? post.user.username : "Unknown" %>
+                                        </h4>
+                                        <small class="ml-auto text-zinc-500">
+                                            <%= post.date ? post.date.toDateString() : '' %>
+                                        </small>
                         </div>
-                        <p class="text-sm leading-relaxed mb-3">
-                            <%= post.content %>
-                        </p>
-                        <div class="flex items-center justify-between text-sm">
-                            <a href="/like/<%= post._id %>" class="text-blue-500 hover:underline transition">
-                                <%= post.likes.indexOf(user._id)===-1 ? "Like" : "Unlike" %>
-                            </a>
-                            <span class="text-zinc-400">
-                                <%= post.likes.length %> likes
-                            </span>
-                        </div>
+
+                        <% if(post.fileContent) { %>
+                            <img src="<%= post.fileContent %>" alt="Post Image"
+                                class="w-full max-h-64 object-cover rounded-lg mb-3 border border-zinc-700">
+                            <% } %>
+
+                                <p class="text-sm leading-relaxed mb-3">
+                                    <%= post.content %>
+                                </p>
                     </div>
                     <% }) %>
+
             </div>
         </section>
     </main>
+
+    <script>
+        const accountDropdownBtn = document.getElementById('accountDropdownBtn');
+        const accountDropdownMenu = document.getElementById('accountDropdownMenu');
+        accountDropdownBtn.addEventListener('click', () => accountDropdownMenu.classList.toggle('hidden'));
+        window.addEventListener('click', (e) => {
+            if (!accountDropdownBtn.contains(e.target) && !accountDropdownMenu.contains(e.target)) {
+                accountDropdownMenu.classList.add('hidden');
+            }
+        });
+    </script>
+
 </body>
-<script>
-    const accountDropdownBtn = document.getElementById('accountDropdownBtn');
-    const accountDropdownMenu = document.getElementById('accountDropdownMenu');
-
-    accountDropdownBtn.addEventListener('click', () => {
-        accountDropdownMenu.classList.toggle('hidden');
-    });
-
-    // Close dropdown if clicked outside
-    window.addEventListener('click', (e) => {
-        if (!accountDropdownBtn.contains(e.target) && !accountDropdownMenu.contains(e.target)) {
-            accountDropdownMenu.classList.add('hidden');
-        }
-    });
-</script>
 
 </html>

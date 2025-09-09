@@ -54,16 +54,30 @@
                                 class="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-20 blur-2xl -z-10">
                             </div>
 
-                            <a href="/user/<%= user.username %>"
-                                class="block text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-300 hover:to-purple-400 transition">
-                                <%= user.username %>
-                            </a>
+                            <!-- Avatar + Username -->
+                            <div class="flex items-center space-x-4">
+                                <% if (user.avatar) { %>
+                                    <img src="<%= user.avatar %>" alt="Avatar"
+                                        class="w-12 h-12 rounded-full object-cover border border-zinc-700">
+                                    <% } else { %>
+                                        <div
+                                            class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-lg font-bold">
+                                            <%= user.username.charAt(0).toUpperCase() %>
+                                        </div>
+                                        <% } %>
 
-                            <% if (user.email) { %>
-                                <p class="text-gray-400 mt-2 text-sm">
-                                    <%= user.email %>
-                                </p>
-                                <% } %>
+                                            <div>
+                                                <a href="/user/<%= user.username %>"
+                                                    class="block text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-300 hover:to-purple-400 transition">
+                                                    <%= user.username %>
+                                                </a>
+                                                <% if (user.email) { %>
+                                                    <p class="text-gray-400 text-sm">
+                                                        <%= user.email %>
+                                                    </p>
+                                                    <% } %>
+                                            </div>
+                            </div>
                         </div>
                         <% }) %>
                 </div>
