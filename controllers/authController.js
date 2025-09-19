@@ -3,9 +3,21 @@ const User = require("../models/user");
 const crypto = require("crypto");
 const {
   sendEmail,
-  emailVerificationMailgenContent,
-  forgotPasswordMailgenContent,
+  emailVerificationContent,
+  forgotPasswordContent,
 } = require("../utils/mail");
+
+// -------- Helpers --------
+const generateToken = () => {
+  const unHashedToken = crypto.randomBytes(20).toString("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(unHashedToken)
+    .digest("hex");
+  return { unHashedToken, hashedToken };
+};
+
+const tokenExpiryTime = 10 * 60 * 1000; // 10 minutes
 
 // -------- GET PAGES --------
 exports.getHome = (req, res) => res.render("home");
@@ -19,20 +31,13 @@ exports.registerUser = async (req, res) => {
   let tempUser;
 
   try {
-    // Check if user already exists
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-    if (existingUser) {
+    // Check if user exists
+    if (await User.findOne({ $or: [{ email }, { username }] })) {
       req.flash("error_msg", "User already exists. Please login.");
       return res.redirect("/login");
     }
 
-    // Generate verification token
-    const unHashedToken = crypto.randomBytes(20).toString("hex");
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(unHashedToken)
-      .digest("hex");
-    const tokenExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const { unHashedToken, hashedToken } = generateToken();
 
     // Create temp user
     tempUser = new User({
@@ -42,60 +47,36 @@ exports.registerUser = async (req, res) => {
       age,
       password,
       emailVerificationToken: hashedToken,
-      emailVerificationExpiry: tokenExpiry,
+      emailVerificationExpiry: Date.now() + tokenExpiryTime,
       isEmailVerified: false,
     });
     await tempUser.save();
 
-    // Construct verification URL using Railway live URL
     const verificationURL = `${process.env.FORGET_PASSWORD_REDIRECT_URL.replace(
       "/reset-password",
       ""
     )}/verify-email/${unHashedToken}`;
 
-    // Prepare email content
-    const emailContent = emailVerificationMailgenContent(
-      username,
-      verificationURL
-    );
-
-    // Send email
+    // Send verification email
     await sendEmail({
       email,
       subject: "Verify Your Email - MySocial",
-      html: `
-        <p>${emailContent.body.intro}</p>
-        <p>${emailContent.body.action.instructions}</p>
-        <a href="${verificationURL}" style="
-          color:#fff; 
-          background:#22BC66; 
-          padding:10px 20px; 
-          text-decoration:none;
-          border-radius:5px;
-        ">Verify Email</a>
-      `,
+      html: emailVerificationContent(username, verificationURL),
     });
 
     req.flash(
       "success_msg",
       "Verification email sent! Please check your inbox."
     );
-    return res.redirect("/login");
+    res.redirect("/login");
   } catch (err) {
-    console.error("Registration/Error sending email:", err);
+    console.error("Registration/Error:", err);
 
-    // Delete temp user if exists
-    if (tempUser && tempUser._id) {
-      try {
-        await User.findByIdAndDelete(tempUser._id);
-        console.log("🗑️ Temp user deleted due to failure.");
-      } catch (delErr) {
-        console.error("Failed to delete temp user:", delErr);
-      }
-    }
+    // Delete temp user if created
+    if (tempUser?._id) await User.findByIdAndDelete(tempUser._id);
 
     req.flash("error_msg", "Something went wrong. Please try again.");
-    return res.redirect("/register");
+    res.redirect("/register");
   }
 };
 
@@ -106,67 +87,55 @@ exports.verifyEmail = async (req, res) => {
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     const user = await User.findOne({ emailVerificationToken: hashedToken });
-
     if (!user) {
       req.flash("error_msg", "Invalid verification link.");
       return res.redirect("/login");
     }
 
-    // Check token expiry
     if (user.emailVerificationExpiry < Date.now()) {
       await User.findByIdAndDelete(user._id);
-      console.log("🗑️ Expired temp user deleted.");
-
       req.flash(
         "error_msg",
-        "Verification link has expired. Please register again."
+        "Verification link expired. Please register again."
       );
       return res.redirect("/register");
     }
 
-    // Verify the user
     user.isEmailVerified = true;
     user.emailVerificationToken = undefined;
     user.emailVerificationExpiry = undefined;
     await user.save();
 
-    req.flash("success_msg", "Email verified successfully. You can now login.");
-    return res.redirect("/login");
+    req.flash("success_msg", "Email verified! You can now login.");
+    res.redirect("/login");
   } catch (err) {
     console.error("Verify email error:", err);
     req.flash("error_msg", "Something went wrong. Please try again.");
-    return res.redirect("/login");
+    res.redirect("/login");
   }
 };
 
 // -------- LOGIN --------
 exports.loginUser = async (req, res) => {
   try {
-    console.log("⚡ Login route hit");
-
     const { email, password } = req.body;
-    const emailInput = email?.toLowerCase().trim();
+    const user = await User.findOne({ email: email?.toLowerCase().trim() });
 
-    const user = await User.findOne({ email: emailInput });
-    if (!user) {
-      req.flash("error_msg", "User not found.");
-      return res.redirect("/login");
+    if (!user)
+      return req.flash("error_msg", "User not found."), res.redirect("/login");
+    if (!user.isEmailVerified)
+      return (
+        req.flash("error_msg", "Verify your email first."),
+        res.redirect("/login")
+      );
+
+    if (!(await user.isPasswordCorrect(password))) {
+      return (
+        req.flash("error_msg", "Incorrect password."), res.redirect("/login")
+      );
     }
 
-    if (!user.isEmailVerified) {
-      req.flash("error_msg", "Please verify your email first.");
-      return res.redirect("/login");
-    }
-
-    const isMatch = await user.isPasswordCorrect(password);
-    if (!isMatch) {
-      req.flash("error_msg", "Incorrect password.");
-      return res.redirect("/login");
-    }
-
-    const accessToken = user.generateAccessToken();
-    res.cookie("token", accessToken, { httpOnly: true });
-
+    res.cookie("token", user.generateAccessToken(), { httpOnly: true });
     req.flash("success_msg", "Login successful!");
     res.redirect("/profile");
   } catch (err) {
@@ -179,7 +148,7 @@ exports.loginUser = async (req, res) => {
 // -------- LOGOUT --------
 exports.logoutUser = (req, res) => {
   res.cookie("token", "", { maxAge: 1 });
-  req.flash("success_msg", "You have logged out successfully.");
+  req.flash("success_msg", "Logged out successfully.");
   res.redirect("/login");
 };
 
@@ -188,40 +157,22 @@ exports.sendForgotPasswordEmail = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
-    if (!user) {
-      req.flash("error_msg", "Email not found.");
-      return res.redirect("/forgot-password");
-    }
+    if (!user)
+      return (
+        req.flash("error_msg", "Email not found."),
+        res.redirect("/forgot-password")
+      );
 
-    const unHashedToken = crypto.randomBytes(20).toString("hex");
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(unHashedToken)
-      .digest("hex");
-    const tokenExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
-
+    const { unHashedToken, hashedToken } = generateToken();
     user.forgotPasswordToken = hashedToken;
-    user.forgotPasswordExpiry = tokenExpiry;
+    user.forgotPasswordExpiry = Date.now() + tokenExpiryTime;
     await user.save();
 
     const resetURL = `${process.env.FORGET_PASSWORD_REDIRECT_URL}/${unHashedToken}`;
-    const emailContent = forgotPasswordMailgenContent(user.username, resetURL);
-
     await sendEmail({
       email: user.email,
       subject: "Reset Your Password - MySocial",
-      html: `
-        <p>${emailContent.body.intro}</p>
-        <p>${emailContent.body.action.instructions}</p>
-        <a href="${resetURL}" style="
-            color: #fff; 
-            background: #FF0000; 
-            padding: 10px 20px; 
-            text-decoration: none;
-            border-radius: 5px;
-          ">Reset Password</a>
-        <p>${emailContent.body.outro}</p>
-      `,
+      html: forgotPasswordContent(user.username, resetURL),
     });
 
     req.flash("success_msg", "Password reset email sent. Check your inbox!");
@@ -236,20 +187,21 @@ exports.sendForgotPasswordEmail = async (req, res) => {
 // -------- RESET PASSWORD PAGE --------
 exports.getResetPasswordPage = async (req, res) => {
   try {
-    const token = req.params.token;
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
     const user = await User.findOne({
       forgotPasswordToken: hashedToken,
       forgotPasswordExpiry: { $gt: Date.now() },
     });
 
-    if (!user) {
-      req.flash("error_msg", "Invalid or expired reset link.");
-      return res.redirect("/forgot-password");
-    }
-
-    res.render("reset-password", { token });
+    if (!user)
+      return (
+        req.flash("error_msg", "Invalid or expired reset link."),
+        res.redirect("/forgot-password")
+      );
+    res.render("reset-password", { token: req.params.token });
   } catch (err) {
     console.error(err);
     req.flash("error_msg", "Something went wrong. Please try again.");
@@ -260,18 +212,20 @@ exports.getResetPasswordPage = async (req, res) => {
 // -------- RESET PASSWORD ACTION --------
 exports.resetForgotPassword = async (req, res) => {
   try {
-    const token = req.params.token;
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
     const user = await User.findOne({
       forgotPasswordToken: hashedToken,
       forgotPasswordExpiry: { $gt: Date.now() },
     });
 
-    if (!user) {
-      req.flash("error_msg", "Invalid or expired reset link.");
-      return res.redirect("/forgot-password");
-    }
+    if (!user)
+      return (
+        req.flash("error_msg", "Invalid or expired reset link."),
+        res.redirect("/forgot-password")
+      );
 
     user.password = req.body.newPassword;
     user.forgotPasswordToken = undefined;

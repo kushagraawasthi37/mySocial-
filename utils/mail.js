@@ -1,6 +1,6 @@
+// mail.js
 const nodemailer = require("nodemailer");
-const dotenv = require("dotenv");
-dotenv.config(); // Load environment variables
+require("dotenv").config(); // Load environment variables
 
 // Create transporter using SendGrid
 const transporter = nodemailer.createTransport({
@@ -12,55 +12,37 @@ const transporter = nodemailer.createTransport({
 });
 
 // Generic function to send email
-const sendEmail = async ({ email, subject, html }) => {
+const sendEmail = async (to, subject, html) => {
   try {
     await transporter.sendMail({
       from: `"MySocial" <${process.env.EMAIL_USER}>`, // verified sender
-      to: email,
+      to,
       subject,
       html,
     });
-    console.log("✅ Email sent to", email);
+    console.log("✅ Email sent to", to);
   } catch (err) {
     console.error("❌ Email sending error:", err);
   }
 };
-//
-// Email verification template is here
-const emailVerificationMailgenContent = (username, url) => ({
-  body: {
-    name: username,
-    intro: "Welcome! Please verify your email.",
-    action: {
-      instructions: "Click the button below to verify your email:",
-      button: {
-        color: "#22BC66",
-        text: "Verify Email",
-        link: url,
-      },
-    },
-  },
-});
 
-// Forgot password email template
-const forgotPasswordMailgenContent = (username, url) => ({
-  body: {
-    name: username,
-    intro: "You requested a password reset.",
-    action: {
-      instructions: "Click the button below to reset your password:",
-      button: {
-        color: "#FF0000",
-        text: "Reset Password",
-        link: url,
-      },
-    },
-    outro: "If you did not request this, please ignore this email.",
-  },
-});
+// Email verification template
+const emailVerificationContent = (username, url) => `
+  <p>Hi ${username},</p>
+  <p>Welcome! Please verify your email by clicking the link below:</p>
+  <a href="${url}" style="display:inline-block;padding:10px 20px;background:#22BC66;color:white;text-decoration:none;">Verify Email</a>
+`;
+
+// Forgot password template
+const forgotPasswordContent = (username, url) => `
+  <p>Hi ${username},</p>
+  <p>You requested a password reset. Click the link below:</p>
+  <a href="${url}" style="display:inline-block;padding:10px 20px;background:#FF0000;color:white;text-decoration:none;">Reset Password</a>
+  <p>If you did not request this, please ignore this email.</p>
+`;
 
 module.exports = {
   sendEmail,
-  emailVerificationMailgenContent,
-  forgotPasswordMailgenContent,
+  emailVerificationContent,
+  forgotPasswordContent,
 };
