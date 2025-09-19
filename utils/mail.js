@@ -1,22 +1,14 @@
-// mail.js
-const nodemailer = require("nodemailer");
-require("dotenv").config(); // Load environment variables
+// utils/mail.js
+const sgMail = require("@sendgrid/mail");
+require("dotenv").config();
 
-// Create transporter using SendGrid
-const transporter = nodemailer.createTransport({
-  service: "SendGrid",
-  auth: {
-    user: "apikey", // literally "apikey"
-    pass: process.env.SENDGRID_API_KEY,
-  },
-});
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// Generic function to send email
 const sendEmail = async (to, subject, html) => {
   try {
-    await transporter.sendMail({
-      from: `"MySocial" <${process.env.EMAIL_USER}>`, // verified sender
+    await sgMail.send({
       to,
+      from: process.env.EMAIL_USER,
       subject,
       html,
     });
@@ -26,19 +18,38 @@ const sendEmail = async (to, subject, html) => {
   }
 };
 
-// Email verification template
 const emailVerificationContent = (username, url) => `
-  <p>Hi ${username},</p>
-  <p>Welcome! Please verify your email by clicking the link below:</p>
-  <a href="${url}" style="display:inline-block;padding:10px 20px;background:#22BC66;color:white;text-decoration:none;">Verify Email</a>
+  <div style="font-family:Arial,sans-serif;text-align:center;">
+    <p>Hi ${username},</p>
+    <p>Welcome to MySocial! Please verify your email:</p>
+    <a href="${url}" style="
+      display:inline-block;
+      padding:10px 20px;
+      background:#22BC66;
+      color:#fff;
+      text-decoration:none;
+      border-radius:5px;
+      margin-top:10px;
+    ">Verify Email</a>
+    <p style="margin-top:20px;font-size:12px;color:#555;">Ignore this if you did not register.</p>
+  </div>
 `;
 
-// Forgot password template
 const forgotPasswordContent = (username, url) => `
-  <p>Hi ${username},</p>
-  <p>You requested a password reset. Click the link below:</p>
-  <a href="${url}" style="display:inline-block;padding:10px 20px;background:#FF0000;color:white;text-decoration:none;">Reset Password</a>
-  <p>If you did not request this, please ignore this email.</p>
+  <div style="font-family:Arial,sans-serif;text-align:center;">
+    <p>Hi ${username},</p>
+    <p>You requested a password reset:</p>
+    <a href="${url}" style="
+      display:inline-block;
+      padding:10px 20px;
+      background:#FF0000;
+      color:#fff;
+      text-decoration:none;
+      border-radius:5px;
+      margin-top:10px;
+    ">Reset Password</a>
+    <p style="margin-top:20px;font-size:12px;color:#555;">Ignore if you didn't request it.</p>
+  </div>
 `;
 
 module.exports = {
