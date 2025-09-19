@@ -25,7 +25,7 @@ const sendEmail = async ({ email, subject, html }) => {
     console.error("❌ Email sending error:", err);
   }
 };
-
+//
 // Email verification template
 const emailVerificationMailgenContent = (username, url) => ({
   body: {
