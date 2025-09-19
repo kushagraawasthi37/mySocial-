@@ -12,9 +12,9 @@ const connectDB = require("./db/db.js");
 connectDB();
 
 // Import Routes
-const authRoutes = require("./routes/authRoutes");
-const postRoutes = require("./routes/postRoutes");
-const userRoutes = require("./routes/userRoutes");
+const authRoutes = require("./routes/authRoutes.js");
+const postRoutes = require("./routes/postRoutes.js");
+const userRoutes = require("./routes/userRoutes.js");
 
 const app = express();
 
