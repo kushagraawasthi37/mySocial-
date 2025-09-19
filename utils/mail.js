@@ -26,7 +26,7 @@ const sendEmail = async ({ email, subject, html }) => {
   }
 };
 //
-// Email verification template
+// Email verification template is here
 const emailVerificationMailgenContent = (username, url) => ({
   body: {
     name: username,
