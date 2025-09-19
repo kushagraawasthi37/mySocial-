@@ -12,9 +12,9 @@ const connectDB = require("./db/db.js");
 connectDB();
 
 // Import Routes
-const authRoutes = require("./routes/authRoutes.js");
-const postRoutes = require("./routes/postRoutes.js");
-const userRoutes = require("./routes/userRoutes.js");
+const authRoutes = require("./routes/authRoutes");
+const postRoutes = require("./routes/postRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 
@@ -93,5 +93,5 @@ setInterval(async () => {
 // Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
-  console.log(`🚀 Server running at :${PORT}`)
+  console.log(`🚀 Server running at http://localhost:${PORT}`)
 );

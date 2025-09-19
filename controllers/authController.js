@@ -1,228 +1,282 @@
-// controllers/authController.js
 const User = require("../models/user");
-const crypto = require("crypto");
 const {
   sendEmail,
-  emailVerificationContent,
-  forgotPasswordContent,
+  emailVerificationMailgenContent,
+  forgotPasswordMailgenContent,
 } = require("../utils/mail");
+const crypto = require("crypto");
 
-const tokenExpiry = 10 * 60 * 1000; // 10 minutes
-
-const generateToken = () => {
-  const unHashedToken = crypto.randomBytes(20).toString("hex");
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(unHashedToken)
-    .digest("hex");
-  return { unHashedToken, hashedToken };
-};
-
-// Pages
+// -------- GET PAGES --------
 exports.getHome = (req, res) => res.render("home");
 exports.getLogin = (req, res) => res.render("login");
 exports.getRegister = (req, res) => res.render("home");
-exports.getForgotPassword = (req, res) => res.render("forgot-password");
+exports.getForgotPassword = (req, res) => {
+  const success_msg = req.flash("success_msg");
+  const error_msg = req.flash("error_msg");
+  res.render("forgot-password", { success_msg, error_msg });
+};
 
-// Register
+// -------- REGISTER USER --------
 exports.registerUser = async (req, res) => {
-  const { email, username, password, name, age } = req.body;
-  let tempUser;
-
   try {
-    if (await User.findOne({ $or: [{ email }, { username }] })) {
-      req.flash("error_msg", "User already exists. Please login.");
+    const { email, username, password, name, age } = req.body;
+
+    // Check if user already exists
+    let existingUser = await User.findOne({ $or: [{ email }, { username }] }); //$or is a query operator in MongoDB.It allows you to match documents that satisfy at least one condition from an array of conditions.Think of it like a logical OR in programming: condition1 || condition2.
+    if (existingUser) {
+      req.flash(
+        "error_msg",
+        "User already exists. Please login."
+        // "Have  a good day": more message can be passed it retrieve the array
+      );
       return res.redirect("/login");
     }
 
-    const { unHashedToken, hashedToken } = generateToken();
-    tempUser = await User.create({
+    // Generate verification token
+    const unHashedToken = crypto.randomBytes(20).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(unHashedToken)
+      .digest("hex");
+    const tokenExpiry = Date.now() + 3 * 60 * 1000; //3 mins
+
+    //Create  a temp user until Email verification not saved
+    const tempUser = new User({
       email,
       username,
       name,
       age,
       password,
       emailVerificationToken: hashedToken,
-      emailVerificationExpiry: Date.now() + tokenExpiry,
+      emailVerificationExpiry: tokenExpiry,
       isEmailVerified: false,
     });
 
-    const verificationURL = `${process.env.FORGET_PASSWORD_REDIRECT_URL.replace(
-      "/reset-password",
-      ""
+    await tempUser.save();
+
+    // Send verification email
+    const verificationURL = `${req.protocol}://${req.get(
+      "host"
     )}/verify-email/${unHashedToken}`;
 
-    await sendEmail(
-      email,
-      "Verify Your Email - MySocial",
-      emailVerificationContent(username, verificationURL)
+    const emailContent = emailVerificationMailgenContent(
+      username,
+      verificationURL
     );
 
-    req.flash("success_msg", "Verification email sent! Check your inbox.");
+    await sendEmail({
+      email,
+      subject: "Verify Your Email",
+      html: `<p>${emailContent.body.intro}</p>
+             <p>${emailContent.body.action.instructions}</p>
+             <a href="${verificationURL}" style="color:#fff; background:#22BC66; padding:10px 20px; text-decoration:none;">Verify Email</a>`,
+    });
+
+    req.flash(
+      "success_msg",
+      "Verification email sent! Please check your inbox."
+    );
+
     res.redirect("/login");
   } catch (err) {
-    console.error("Register Error:", err);
-    if (tempUser?._id) await User.findByIdAndDelete(tempUser._id);
-    req.flash("error_msg", "Something went wrong. Try again.");
+    console.error(err);
+    req.flash("error_msg", "Something went wrong. Please try again.");
     res.redirect("/register");
   }
 };
 
-// Verify Email
+// -------- EMAIL VERIFICATION --------
 exports.verifyEmail = async (req, res) => {
   try {
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(req.params.token)
-      .digest("hex");
-    const user = await User.findOne({ emailVerificationToken: hashedToken });
+    const token = req.params.token;
+    //Convert this token into hashed token
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      emailVerificationToken: hashedToken,
+      emailVerificationExpiry: { $gt: Date.now() }, //$gt stands for “greater than”.It is used in queries to find documents where a field’s value is greater than a specified value.
+    });
 
     if (!user) {
-      req.flash("error_msg", "Invalid verification link.");
+      req.flash("error_msg", "Invalid or expired verification link.");
       return res.redirect("/login");
-    }
-
-    if (user.emailVerificationExpiry < Date.now()) {
-      await User.findByIdAndDelete(user._id);
-      req.flash("error_msg", "Link expired. Register again.");
-      return res.redirect("/register");
     }
 
     user.isEmailVerified = true;
     user.emailVerificationToken = undefined;
     user.emailVerificationExpiry = undefined;
+    //Wo jo temp user banaya hai usko save kardo
     await user.save();
 
-    req.flash("success_msg", "Email verified! You can login now.");
+    req.flash("success_msg", "Email verified successfully. You can now login.");
     res.redirect("/login");
   } catch (err) {
-    console.error("Verify Email Error:", err);
-    req.flash("error_msg", "Something went wrong. Try again.");
+    console.error(err);
+    req.flash("error_msg", "Something went wrong. Please try again.");
     res.redirect("/login");
   }
 };
 
-// Login
+// -------- LOGIN --------
 exports.loginUser = async (req, res) => {
   try {
+    // Debug: login
+    console.log("⚡ Login route hit");
+
     const { email, password } = req.body;
-    const user = await User.findOne({ email: email?.toLowerCase().trim() });
 
-    if (!user)
-      return req.flash("error_msg", "User not found."), res.redirect("/login");
-    if (!user.isEmailVerified)
-      return (
-        req.flash("error_msg", "Verify your email first."),
-        res.redirect("/login")
-      );
-    if (!(await user.isPasswordCorrect(password)))
-      return (
-        req.flash("error_msg", "Incorrect password."), res.redirect("/login")
-      );
+    // Debug: log email before processing
+    // console.log("Email received from form:", `"${email}"`);
 
-    res.cookie("token", user.generateAccessToken(), { httpOnly: true });
+    const emailInput = email?.toLowerCase().trim();
+    // console.log("Normalized email:", `"${emailInput}"`);
+
+    // Find user in DB
+    const user = await User.findOne({ email: emailInput });
+    // console.log("Found user:", user);
+
+    if (!user) {
+      req.flash("error_msg", "User not found.");
+      return res.redirect("/login");
+    }
+
+    if (!user.isEmailVerified) {
+      req.flash("error_msg", "Please verify your email first.");
+      return res.redirect("/login");
+    }
+
+    const isMatch = await user.isPasswordCorrect(password);
+    // console.log("Password match:", isMatch);
+
+    if (!isMatch) {
+      req.flash("error_msg", "Incorrect password.");
+      return res.redirect("/login");
+    }
+
+    //Sab sahi hai login kr skta hai aab cookie set krdo
+
+    const accessToken = user.generateAccessToken();
+    res.cookie("token", accessToken, { httpOnly: true });
+
+    // httpOnly:true
+    //Prevents JavaScript in the browser from accessing the cookie.
+    //Improves security by protecting the cookie from XSS (cross-site scripting) attacks.
+    //Browser can still send the cookie automatically on every request to your server.
+
     req.flash("success_msg", "Login successful!");
     res.redirect("/profile");
   } catch (err) {
-    console.error("Login Error:", err);
-    req.flash("error_msg", "Something went wrong. Try again.");
+    console.error("Login error:", err);
+    req.flash("error_msg", "Something went wrong. Please try again.");
     res.redirect("/login");
   }
 };
 
-// Logout
+// -------- LOGOUT --------
 exports.logoutUser = (req, res) => {
-  res.cookie("token", "", { maxAge: 1 });
-  req.flash("success_msg", "Logged out successfully.");
+  res.cookie("token", "", { maxAge: 1 }); // maxAge: 1  → Sets the cookie to expire in 1 millisecond.
+  req.flash("success_msg", "You have logged out successfully.");
   res.redirect("/login");
 };
 
-// Forgot Password
+// -------- FORGOT PASSWORD --------
 exports.sendForgotPasswordEmail = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
+    if (!user) {
+      req.flash("error_msg", "Email not found.");
+      return res.redirect("/forgot-password");
+    }
 
-    if (!user)
-      return (
-        req.flash("error_msg", "Email not found."),
-        res.redirect("/forgot-password")
-      );
+    // Generate token
+    const unHashedToken = crypto.randomBytes(20).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(unHashedToken)
+      .digest("hex");
+    const tokenExpiry = Date.now() + 3 * 60 * 1000; // 3 mins tak valid rahega
 
-    const { unHashedToken, hashedToken } = generateToken();
     user.forgotPasswordToken = hashedToken;
-    user.forgotPasswordExpiry = Date.now() + tokenExpiry;
+    user.forgotPasswordExpiry = tokenExpiry;
     await user.save();
 
-    const resetURL = `${process.env.FORGET_PASSWORD_REDIRECT_URL}/${unHashedToken}`;
-    await sendEmail(
-      user.email,
-      "Reset Your Password - MySocial",
-      forgotPasswordContent(user.username, resetURL)
-    );
+    const resetURL = `${req.protocol}://${req.get(
+      "host"
+    )}/reset-password/${unHashedToken}`;
+    const emailContent = forgotPasswordMailgenContent(user.username, resetURL);
 
-    req.flash("success_msg", "Password reset email sent! Check your inbox.");
+    await sendEmail({
+      email: user.email,
+      subject: "Reset Your Password",
+      html: `<p>${emailContent.body.intro}</p>
+             <p>${emailContent.body.action.instructions}</p>
+             <a href="${resetURL}" style="color:#fff; background:#FF0000; padding:10px 20px; text-decoration:none;">Reset Password</a>
+             <p>${emailContent.body.outro}</p>`,
+    });
+
+    req.flash("success_msg", "Password reset email sent. Check your inbox!");
     res.redirect("/forgot-password");
   } catch (err) {
-    console.error("Forgot Password Error:", err);
-    req.flash("error_msg", "Something went wrong. Try again.");
+    console.error(err);
+    req.flash("error_msg", "Something went wrong. Please try again.");
     res.redirect("/forgot-password");
   }
 };
 
-// Reset Password Page
+// -------- RESET PASSWORD PAGE --------
 exports.getResetPasswordPage = async (req, res) => {
   try {
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(req.params.token)
-      .digest("hex");
+    const token = req.params.token;
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
     const user = await User.findOne({
       forgotPasswordToken: hashedToken,
       forgotPasswordExpiry: { $gt: Date.now() },
     });
 
-    if (!user)
-      return (
-        req.flash("error_msg", "Invalid or expired link."),
-        res.redirect("/forgot-password")
-      );
-    res.render("reset-password", { token: req.params.token });
+    if (!user) {
+      req.flash("error_msg", "Invalid or expired reset link.");
+      return res.redirect("/forgot-password");
+    }
+    req.flash(
+      "success_msg",
+      "Password reset mail send successful. You can reset your password now!"
+    );
+    res.render("reset-password", { token });
   } catch (err) {
-    console.error("Reset Page Error:", err);
-    req.flash("error_msg", "Something went wrong. Try again.");
+    console.error(err);
+    req.flash("error_msg", "Something went wrong. Please try again.");
     res.redirect("/forgot-password");
   }
 };
 
-// Reset Password Action
+// -------- RESET PASSWORD ACTION --------
 exports.resetForgotPassword = async (req, res) => {
   try {
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(req.params.token)
-      .digest("hex");
+    const token = req.params.token;
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
     const user = await User.findOne({
       forgotPasswordToken: hashedToken,
       forgotPasswordExpiry: { $gt: Date.now() },
     });
 
-    if (!user)
-      return (
-        req.flash("error_msg", "Invalid or expired link."),
-        res.redirect("/forgot-password")
-      );
+    if (!user) {
+      req.flash("error_msg", "Invalid or expired reset link.");
+      return res.redirect("/forgot-password");
+    }
 
     user.password = req.body.newPassword;
     user.forgotPasswordToken = undefined;
     user.forgotPasswordExpiry = undefined;
     await user.save();
 
-    req.flash("success_msg", "Password reset successful! You can login now.");
+    req.flash("success_msg", "Password reset successful. You can now login!");
     res.redirect("/login");
   } catch (err) {
-    console.error("Reset Password Error:", err);
-    req.flash("error_msg", "Something went wrong. Try again.");
+    console.error(err);
+    req.flash("error_msg", "Something went wrong. Please try again.");
     res.redirect("/forgot-password");
   }
 };

@@ -1,59 +1,69 @@
-// utils/mail.js
-const sgMail = require("@sendgrid/mail");
-require("dotenv").config();
+const nodemailer = require("nodemailer");
+const dotenv = require("dotenv");
+const { link } = require("../routes/authRoutes");
+dotenv.config(); // ✅ load environment variables
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// creates a “transporter” object that knows how to send mails.
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS, // must be App Password
+  },
+});
 
-const sendEmail = async (to, subject, html) => {
+const sendEmail = async ({ email, subject, html }) => {
   try {
-    await sgMail.send({
-      to,
-      from: process.env.EMAIL_USER,
+    await transporter.sendMail({
+      from: `"MySocial" <${process.env.EMAIL_USER}>`,
+      to: email,
       subject,
       html,
     });
-    console.log("✅ Email sent to", to);
+    console.log("✅ Email sent to", email);
   } catch (err) {
     console.error("❌ Email sending error:", err);
   }
 };
 
-const emailVerificationContent = (username, url) => `
-  <div style="font-family:Arial,sans-serif;text-align:center;">
-    <p>Hi ${username},</p>
-    <p>Welcome to MySocial! Please verify your email:</p>
-    <a href="${url}" style="
-      display:inline-block;
-      padding:10px 20px;
-      background:#22BC66;
-      color:#fff;
-      text-decoration:none;
-      border-radius:5px;
-      margin-top:10px;
-    ">Verify Email</a>
-    <p style="margin-top:20px;font-size:12px;color:#555;">Ignore this if you did not register.</p>
-  </div>
-`;
+const emailVerificationMailgenContent = (username, url) => {
+  return {
+    body: {
+      name: username,
+      intro: "Welcome! Please verify your email.",
+      action: {
+        instructions: "Click the button below to verify your email:",
+        button: {
+          color: "#22BC66",
+          text: "Verify Email",
+          link: url,
+        },
+      },
+    },
+  };
+};
 
-const forgotPasswordContent = (username, url) => `
-  <div style="font-family:Arial,sans-serif;text-align:center;">
-    <p>Hi ${username},</p>
-    <p>You requested a password reset:</p>
-    <a href="${url}" style="
-      display:inline-block;
-      padding:10px 20px;
-      background:#FF0000;
-      color:#fff;
-      text-decoration:none;
-      border-radius:5px;
-      margin-top:10px;
-    ">Reset Password</a>
-    <p style="margin-top:20px;font-size:12px;color:#555;">Ignore if you didn't request it.</p>
-  </div>
-`;
+const forgotPasswordMailgenContent = (username, url) => {
+  return {
+    body: {
+      name: username,
+      intro: "You requested a password reset.",
+      action: {
+        instructions: "Click the button below to reset your password:",
+        button: {
+          color: "#FF0000",
+          text: "Reset Password",
+          link: url,
+        },
+      },
+      outro: "If you did not request this, please ignore this email.",
+    },
+  };
+};
 
+// ✅ Export functions for CommonJS
 module.exports = {
   sendEmail,
-  emailVerificationContent,
-  forgotPasswordContent,
+  emailVerificationMailgenContent,
+  forgotPasswordMailgenContent,
 };
