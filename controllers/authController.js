@@ -55,9 +55,8 @@ exports.registerUser = async (req, res) => {
     await tempUser.save();
 
     // Send verification email
-    const verificationURL = `${req.protocol}://${req.get(
-      "host"
-    )}/verify-email/${unHashedToken}`;
+    // Use BASE_URL from .env
+    const verificationURL = `${process.env.BASE_URL}/verify-email/${unHashedToken}`;
 
     const emailContent = emailVerificationMailgenContent(
       username,
@@ -156,7 +155,16 @@ exports.loginUser = async (req, res) => {
     //Sab sahi hai login kr skta hai aab cookie set krdo
 
     const accessToken = user.generateAccessToken();
-    res.cookie("token", accessToken, { httpOnly: true });
+    res.cookie(
+      "token",
+      accessToken,
+      res.cookie("token", accessToken, {
+        httpOnly: true, // prevents JS access
+        secure: process.env.NODE_ENV === "production", // only HTTPS in prod
+        sameSite: "strict", // prevents CSRF attacks
+        maxAge: 1000 * 60 * 60 * 24, // 1 day
+      })
+    );
 
     // httpOnly:true
     //Prevents JavaScript in the browser from accessing the cookie.
@@ -201,9 +209,7 @@ exports.sendForgotPasswordEmail = async (req, res) => {
     user.forgotPasswordExpiry = tokenExpiry;
     await user.save();
 
-    const resetURL = `${req.protocol}://${req.get(
-      "host"
-    )}/reset-password/${unHashedToken}`;
+    const resetURL = `${process.env.BASE_URL}/reset-password/${unHashedToken}`;
     const emailContent = forgotPasswordMailgenContent(user.username, resetURL);
 
     await sendEmail({

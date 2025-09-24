@@ -1,31 +1,30 @@
-const nodemailer = require("nodemailer");
+// utils/sendEmail.js
+const sgMail = require("@sendgrid/mail");
 const dotenv = require("dotenv");
-const { link } = require("../routes/authRoutes");
-dotenv.config(); // ✅ load environment variables
+dotenv.config(); // Loads environment variables
 
-// creates a “transporter” object that knows how to send mails.
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // must be App Password
-  },
-});
+// ✅ Set SendGrid API Key from environment
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+// Send Email function
 const sendEmail = async ({ email, subject, html }) => {
   try {
-    await transporter.sendMail({
-      from: `"MySocial" <${process.env.EMAIL_USER}>`,
+    await sgMail.send({
       to: email,
+      from: process.env.EMAIL_USER, // Verified sender in SendGrid
       subject,
       html,
     });
     console.log("✅ Email sent to", email);
   } catch (err) {
-    console.error("❌ Email sending error:", err);
+    console.error(
+      "❌ SendGrid Email Error:",
+      err.response?.body?.errors || err.message
+    );
   }
 };
 
+// Email verification template
 const emailVerificationMailgenContent = (username, url) => {
   return {
     body: {
@@ -43,6 +42,7 @@ const emailVerificationMailgenContent = (username, url) => {
   };
 };
 
+// Forgot password template
 const forgotPasswordMailgenContent = (username, url) => {
   return {
     body: {
@@ -61,7 +61,6 @@ const forgotPasswordMailgenContent = (username, url) => {
   };
 };
 
-// ✅ Export functions for CommonJS
 module.exports = {
   sendEmail,
   emailVerificationMailgenContent,
