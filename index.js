@@ -40,6 +40,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(cookieParser());
 
+app.set('trust proxy', 1);
+
 // Session middleware
 app.use(
   session({
