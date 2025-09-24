@@ -11,97 +11,101 @@
 </head>
 
 <body class="bg-zinc-900 text-white min-h-screen">
-    <header class="flex justify-between items-center px-8 py-4 bg-zinc-800 shadow-md mb-8">
+
+    <!-- Header / Navbar -->
+    <header
+        class="flex flex-col sm:flex-row justify-between items-center px-4 sm:px-8 py-4 bg-zinc-800 shadow-md mb-6 sm:mb-8 gap-3 sm:gap-0">
         <h1 class="text-2xl font-bold text-blue-400">MySocial</h1>
 
-        <div class="flex items-end">
-            <!-- Search form -->
-            <form action="/search/user" method="GET" class="flex items-center space-x-2">
+        <div class="flex items-center gap-4">
+            <!-- Search Form -->
+            <form action="/search/user" method="GET" class="flex">
                 <button type="submit"
-                    class="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-lg text-sm font-medium transition mx-3 ">
+                    class="bg-blue-500 hover:bg-blue-600 px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition">
                     Search
                 </button>
             </form>
-            <div class="space-x-4 flex items-center">
-                <a href="/feed"
-                    class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg text-sm font-semibold transition">Feed</a>
 
-                <!-- Dropdown for account actions -->
-                <div class="relative">
-                    <button id="accountDropdownBtn"
-                        class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-semibold transition">
-                        Account ⚙️
-                    </button>
+            <a href="/feed"
+                class="bg-green-500 hover:bg-green-600 px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-semibold transition">
+                Feed
+            </a>
 
-                    <div id="accountDropdownMenu"
-                        class="hidden absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50">
-                        <a href="/logout"
-                            class="block px-4 py-2 text-white hover:bg-red-600 rounded-t-lg transition">Logout</a>
-                        <a href="/delete-account/<%=user.username%>"
-                            class="block px-4 py-2 text-white hover:bg-red-700 rounded-b-lg transition">Delete
-                            Account</a>
-                    </div>
+            <!-- Account Dropdown -->
+            <div class="relative">
+                <button id="accountDropdownBtn"
+                    class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm sm:text-base font-semibold transition">
+                    Account ⚙️
+                </button>
+                <div id="accountDropdownMenu"
+                    class="hidden absolute right-0 mt-2 w-48 sm:w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50">
+                    <a href="/logout"
+                        class="block px-4 py-2 text-white hover:bg-red-600 rounded-t-lg transition">Logout</a>
+                    <a href="/delete-account/<%=user.username%>"
+                        class="block px-4 py-2 text-white hover:bg-red-700 rounded-b-lg transition">Delete Account</a>
                 </div>
             </div>
         </div>
     </header>
 
     <!-- Profile Section -->
-    <main class="max-w-4xl mx-auto p-6">
-        <div class="flex items-center space-x-4 mb-8">
-            <div class="w-16 h-16 rounded-full overflow-hidden">
+    <main class="max-w-3xl sm:max-w-4xl mx-auto px-4 sm:px-6">
+        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <!-- Avatar -->
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden flex-shrink-0">
                 <% if (user.avatar) { %>
                     <img src="<%= user.avatar %>" alt="<%= user.username %>" class="w-full h-full object-cover">
                     <% } else { %>
                         <div
-                            class="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-xl font-bold">
+                            class="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold">
                             <%= user.username[0].toUpperCase() %>
                         </div>
                         <% } %>
             </div>
-            <div>
-                <h2 class="text-3xl font-semibold">
+
+            <div class="text-center sm:text-left">
+                <h2 class="text-2xl sm:text-3xl font-semibold">
                     <%= user.name %>
                 </h2>
-                <p class="text-zinc-400">@<%= user.username %> • Age <%= user.age %>
+                <p class="text-zinc-400 text-sm sm:text-base">@<%= user.username %> • Age <%= user.age || 'N/A' %>
                 </p>
             </div>
         </div>
 
         <!-- User Posts -->
         <section>
-            <h3 class="text-xl font-semibold text-zinc-300 mb-4">
+            <h3 class="text-xl sm:text-2xl font-semibold text-zinc-300 mb-4">
                 <%= user.username %> Posts
             </h3>
             <div class="space-y-4">
                 <% if (user.posts && user.posts.length> 0) { %>
-                    <% user.posts.slice().reverse().forEach(function(post){ %>
-                        <div class="p-5 bg-zinc-800 rounded-lg border border-zinc-700 shadow-md">
-                            <div class="flex items-start gap-3 mb-2">
-                                <!-- Post author profile -->
-                                <div class="w-10 h-10 rounded-full overflow-hidden">
+                    <% user.posts.slice().reverse().forEach(post=> { %>
+                        <div class="p-4 sm:p-5 bg-zinc-800 rounded-lg border border-zinc-700 shadow-md">
+                            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center mb-2">
+                                <!-- Post author -->
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden flex-shrink-0">
                                     <% if (user.avatar) { %>
                                         <img src="<%= user.avatar %>" alt="<%= user.username %>"
                                             class="w-full h-full object-cover">
                                         <% } else { %>
                                             <div
-                                                class="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-sm font-bold">
+                                                class="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-sm sm:text-base font-bold">
                                                 <%= user.username[0].toUpperCase() %>
                                             </div>
                                             <% } %>
                                 </div>
                                 <div class="flex-1">
-                                    <div class="flex justify-between items-center">
+                                    <div class="flex justify-between items-center mb-1">
                                         <h4 class="text-blue-400 font-semibold">@<%= user.username %>
                                         </h4>
-                                        <small class="text-zinc-500">
+                                        <small class="text-zinc-500 text-xs sm:text-sm">
                                             <%= post.date ? post.date.toDateString() : '' %>
                                         </small>
                                     </div>
-                                    <p class="text-sm leading-relaxed mb-3">
+                                    <p class="text-sm sm:text-base leading-relaxed mb-2">
                                         <%= post.content %>
                                     </p>
-                                    <div class="flex items-center justify-between text-sm">
+                                    <div class="flex flex-wrap gap-4 text-sm sm:text-base items-center">
                                         <a href="/like/<%= post._id %>"
                                             class="text-blue-500 hover:underline transition">
                                             <% if (loggedInUserId && post.likes && post.likes.map(l=>
@@ -120,27 +124,27 @@
                         </div>
                         <% }) %>
                             <% } else { %>
-                                <p class="text-zinc-400">No posts yet.</p>
+                                <p class="text-zinc-400 text-center py-4">No posts yet.</p>
                                 <% } %>
             </div>
         </section>
     </main>
+
+    <script>
+        const accountDropdownBtn = document.getElementById('accountDropdownBtn');
+        const accountDropdownMenu = document.getElementById('accountDropdownMenu');
+
+        accountDropdownBtn.addEventListener('click', () => {
+            accountDropdownMenu.classList.toggle('hidden');
+        });
+
+        window.addEventListener('click', (e) => {
+            if (!accountDropdownBtn.contains(e.target) && !accountDropdownMenu.contains(e.target)) {
+                accountDropdownMenu.classList.add('hidden');
+            }
+        });
+    </script>
+
 </body>
-
-<script>
-    const accountDropdownBtn = document.getElementById('accountDropdownBtn');
-    const accountDropdownMenu = document.getElementById('accountDropdownMenu');
-
-    accountDropdownBtn.addEventListener('click', () => {
-        accountDropdownMenu.classList.toggle('hidden');
-    });
-
-    // Close dropdown if clicked outside
-    window.addEventListener('click', (e) => {
-        if (!accountDropdownBtn.contains(e.target) && !accountDropdownMenu.contains(e.target)) {
-            accountDropdownMenu.classList.add('hidden');
-        }
-    });
-</script>
 
 </html>

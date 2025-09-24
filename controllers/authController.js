@@ -155,16 +155,12 @@ exports.loginUser = async (req, res) => {
     //Sab sahi hai login kr skta hai aab cookie set krdo
 
     const accessToken = user.generateAccessToken();
-    res.cookie(
-      "token",
-      accessToken,
-      res.cookie("token", accessToken, {
-        httpOnly: true, // prevents JS access
-        secure: process.env.NODE_ENV === "production", // only HTTPS in prod
-        sameSite: "strict", // prevents CSRF attacks
-        maxAge: 1000 * 60 * 60 * 24, // 1 day
-      })
-    );
+    res.cookie("token", accessToken, {
+      httpOnly: true, // prevents JS access
+      secure: process.env.NODE_ENV === "production", // only HTTPS in prod
+      sameSite: "strict", // prevents CSRF attacks
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+    });
 
     // httpOnly:true
     //Prevents JavaScript in the browser from accessing the cookie.

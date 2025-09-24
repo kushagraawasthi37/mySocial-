@@ -8,87 +8,86 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-zinc-900 text-white min-h-screen p-6">
+<body class="bg-zinc-900 text-white min-h-screen p-4 sm:p-6">
 
   <!-- Top Bar -->
-  <header class="flex justify-between items-center px-6 py-4 bg-zinc-800 shadow-md mb-8">
-    <h1 class="text-3xl font-bold text-yellow-400">🌐 Feed</h1>
-    <div class="flex items-center space-x-4">
-      <form action="/search/user" method="GET" class="flex items-center space-x-2">
+  <header class="flex flex-col sm:flex-row justify-between items-center px-4 py-3 sm:px-6 sm:py-4 bg-zinc-800 shadow-md mb-6 gap-3 sm:gap-0">
+    <h1 class="text-2xl sm:text-3xl font-bold text-yellow-400">🌐 Feed</h1>
+    <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
+      <form action="/search/user" method="GET" class="flex w-full sm:w-auto gap-2">
         <button type="submit"
-          class="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-lg text-sm font-medium transition mx-3">
+          class="bg-blue-500 hover:bg-blue-600 px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition w-full sm:w-auto">
           Search
         </button>
       </form>
-      <a href="/profile" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg text-sm font-medium transition">
+      <a href="/profile"
+        class="bg-blue-500 hover:bg-blue-600 px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition text-center w-full sm:w-auto">
         My Profile
       </a>
-      <div class="relative">
+      <div class="relative w-full sm:w-auto">
         <button id="accountDropdownBtn"
-          class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-semibold transition">
+          class="bg-red-500 hover:bg-red-600 px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-semibold transition w-full sm:w-auto">
           Account ⚙️
         </button>
         <div id="accountDropdownMenu"
-          class="hidden absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50">
-          <a href="/logout" class="block px-4 py-2 text-white hover:bg-red-600 rounded-t-lg transition">Logout</a>
+          class="hidden absolute right-0 mt-2 w-full sm:w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50">
+          <a href="/logout" class="block px-4 py-2 text-white hover:bg-red-600 rounded-t-lg transition text-sm sm:text-base">Logout</a>
           <a href="/delete-account/<%= user.username %>"
-            class="block px-4 py-2 text-white hover:bg-red-700 rounded-b-lg transition">Delete Account</a>
+            class="block px-4 py-2 text-white hover:bg-red-700 rounded-b-lg transition text-sm sm:text-base">Delete Account</a>
         </div>
       </div>
     </div>
   </header>
 
   <!-- Posts Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <% posts.forEach(post=> { %>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+    <% posts.forEach(post => { %>
       <div class="bg-zinc-800 rounded-2xl shadow-md border border-zinc-700 p-4 flex flex-col">
-
         <!-- User Info -->
         <div class="flex items-center mb-3">
           <% if (post.user.avatar) { %>
             <img src="<%= post.user.avatar %>" alt="avatar"
-              class="w-12 h-12 rounded-full object-cover border border-white">
-            <% } else { %>
-              <div
-                class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center font-bold text-white">
-                <%= post.user.username.charAt(0).toUpperCase() %>
-              </div>
-              <% } %>
-                <h3 class="ml-3 text-lg font-semibold text-blue-400">
-                  <a href="/feed/profile/<%= post.user.username %>">
-                    <%= post.user.username %>
-                  </a>
-                </h3>
+              class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-white">
+          <% } else { %>
+            <div
+              class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center font-bold text-white text-sm sm:text-base">
+              <%= post.user.username.charAt(0).toUpperCase() %>
+            </div>
+          <% } %>
+          <h3 class="ml-3 text-sm sm:text-lg font-semibold text-blue-400">
+            <a href="/feed/profile/<%= post.user.username %>">
+              <%= post.user.username %>
+            </a>
+          </h3>
         </div>
 
         <!-- Post Image -->
         <% if (post.fileContent) { %>
           <img src="<%= post.fileContent %>" alt="Post Image"
-            class="w-full max-h-64 object-cover rounded-lg mb-3 border border-zinc-700">
+            class="w-full max-h-52 sm:max-h-64 object-cover rounded-lg mb-3 border border-zinc-700">
+        <% } %>
+
+        <!-- Post Text -->
+        <p class="text-zinc-300 text-sm sm:text-base mb-3">
+          <%= post.content %>
+        </p>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row justify-between items-center text-sm sm:text-base mt-auto gap-2 sm:gap-0">
+          <span class="text-zinc-400">
+            <%= (post.likes || []).length %> ❤️
+          </span>
+          <% const safeLikes = (post.likes || []).map(like => like?.toString()); %>
+          <% if (safeLikes.includes(userId)) { %>
+            <a href="/like/<%= post._id %>"
+              class="px-3 py-1 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium w-full sm:w-auto text-center transition">Liked</a>
+          <% } else { %>
+            <a href="/like/<%= post._id %>"
+              class="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium w-full sm:w-auto text-center transition">Like</a>
           <% } %>
-
-            <!-- Post Text -->
-            <p class="text-zinc-300 text-sm mb-3">
-              <%= post.content %>
-            </p>
-
-            <!-- Actions -->
-            <div class="flex justify-between items-center text-sm mt-auto">
-              <span class="text-zinc-400">
-                <%= (post.likes || []).length %> ❤️
-              </span>
-              <% const safeLikes=(post.likes || []).map(like=> like?.toString()); %>
-                <% if (safeLikes.includes(userId)) { %>
-                  <a href="/like/<%= post._id %>"
-                    class="px-3 py-1 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition">Liked</a>
-                  <% } else { %>
-                    <a href="/like/<%= post._id %>"
-                      class="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition">Like</a>
-                    <% } %>
-            </div>
-
+        </div>
       </div>
-      <% }) %>
+    <% }) %>
   </div>
 
   <script>

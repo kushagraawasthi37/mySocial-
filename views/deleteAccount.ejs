@@ -8,41 +8,53 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-zinc-900 text-white min-h-screen flex items-center justify-center">
-    <div class="bg-zinc-800 shadow-lg rounded-2xl p-8 w-full max-w-md">
-        <h1 class="text-2xl font-bold text-red-500 mb-4 text-center">Delete Account Permanently</h1>
-        <p class="text-gray-300 mb-6 text-center">
-            Deleting your account is <span class="text-red-400 font-semibold">permanent</span>
-            and cannot be undone. All your data, posts, and settings will be erased forever.
+<body class="bg-zinc-900 text-white min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-zinc-800 shadow-lg rounded-2xl p-6 sm:p-8 w-full max-w-md">
+        <!-- Title -->
+        <h1 class="text-xl sm:text-2xl font-bold text-red-500 mb-3 sm:mb-4 text-center">
+            Delete Account Permanently
+        </h1>
+
+        <!-- Warning Text -->
+        <p class="text-gray-300 mb-5 sm:mb-6 text-sm sm:text-base text-center">
+            Deleting your account is <span class="text-red-400 font-semibold">permanent</span> and cannot be undone. All
+            your data, posts, and settings will be erased forever.
         </p>
 
         <!-- Confirmation Form -->
-        <form action="/delete-account/<%= user.username%>" method="POST" class="space-y-4">
-            <label class="flex items-center space-x-2">
-                <input type="checkbox" name="confirmCheck" required class="w-4 h-4 text-red-600 rounded">
-                <span class="text-sm text-gray-300">
+        <form action="/delete-account/<%= user.username %>" method="POST" class="space-y-4">
+            <!-- Checkbox -->
+            <label class="flex items-center space-x-2 text-sm sm:text-base">
+                <input type="checkbox" name="confirmCheck" required class="w-4 h-4 sm:w-5 sm:h-5 text-red-600 rounded">
+                <span class="text-gray-300">
                     I understand that this action cannot be undone.
                 </span>
             </label>
 
+            <!-- Text Confirmation -->
             <div>
-                <label for="confirmText" class="block text-sm text-gray-400 mb-1">
+                <label for="confirmText" class="block text-sm sm:text-base text-gray-400 mb-1">
                     Type <span class="text-red-400 font-bold">DELETE</span> to confirm:
                 </label>
                 <input type="text" id="confirmText" name="confirmText" required pattern="DELETE"
-                    class="w-full p-2 rounded-lg bg-zinc-700 text-white focus:ring-2 focus:ring-red-500 outline-none">
+                    class="w-full p-2 sm:p-3 rounded-lg bg-zinc-700 text-white focus:ring-2 focus:ring-red-500 outline-none text-sm sm:text-base">
             </div>
 
-            <div class="flex justify-between mt-6">
-                <a href="/profile" class="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 transition">
+            <!-- Buttons -->
+            <div class="flex flex-col sm:flex-row justify-between mt-4 sm:mt-6 gap-3 sm:gap-0">
+                <a href="/profile"
+                    class="w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 transition text-sm sm:text-base">
                     Cancel
                 </a>
-                <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition">
+                <button type="submit"
+                    class="w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition text-sm sm:text-base">
                     Delete Permanently
                 </button>
             </div>
         </form>
     </div>
+
 </body>
 
 </html>

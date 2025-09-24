@@ -8,19 +8,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-zinc-900 text-white flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-md bg-zinc-800 rounded-2xl shadow-lg p-8">
+<body class="bg-zinc-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md bg-zinc-800 rounded-2xl shadow-lg p-6 sm:p-8">
 
         <!-- Header -->
-        <div class="text-center mb-6">
-            <h1 class="text-4xl font-bold text-blue-400">Join MySocial 🚀</h1>
-            <p class="text-zinc-400 mt-2">Create an account to connect with friends</p>
+        <div class="text-center mb-5 sm:mb-6">
+            <h1 class="text-3xl sm:text-4xl font-bold text-blue-400">Join MySocial 🚀</h1>
+            <p class="text-zinc-400 mt-2 text-sm sm:text-base">Create an account to connect with friends</p>
         </div>
 
         <!-- Flash Message -->
         <% if (message) { %>
             <div id="flash-message"
-                class="<%= message.includes('successfully') ? 'bg-green-500' : 'bg-red-500' %> text-white p-3 rounded-lg mb-4 text-center font-medium shadow-md">
+                class="<%= message.includes('successfully') ? 'bg-green-500' : 'bg-red-500' %> text-white p-3 rounded-lg mb-4 text-center font-medium shadow-md text-sm sm:text-base">
                 <%= message %>
             </div>
             <% } %>
@@ -28,28 +29,28 @@
                 <!-- Form -->
                 <form action="/register" method="post" class="space-y-4">
                     <input type="text" name="name" placeholder="Full Name" required
-                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+                        class="w-full px-4 py-3 sm:py-4 text-sm sm:text-base outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
 
                     <input type="text" name="username" placeholder="Username" required
-                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+                        class="w-full px-4 py-3 sm:py-4 text-sm sm:text-base outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
 
                     <input type="password" name="password" placeholder="Password" required
-                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+                        class="w-full px-4 py-3 sm:py-4 text-sm sm:text-base outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
 
                     <input type="email" name="email" placeholder="Email Address" required
-                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+                        class="w-full px-4 py-3 sm:py-4 text-sm sm:text-base outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
 
                     <input type="number" name="age" placeholder="Age" required
-                        class="w-full px-4 py-3 outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 transition" />
+                        class="w-full px-4 py-3 sm:py-4 text-sm sm:text-base outline-none bg-zinc-900 border border-zinc-700 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
 
                     <button type="submit"
-                        class="w-full py-3 bg-blue-500 hover:bg-blue-600 rounded-lg font-semibold text-lg transition">
+                        class="w-full py-3 sm:py-4 bg-blue-500 hover:bg-blue-600 rounded-lg font-semibold text-sm sm:text-lg transition">
                         Create Account
                     </button>
                 </form>
 
                 <!-- Footer -->
-                <p class="text-center text-zinc-400 mt-6">
+                <p class="text-center text-zinc-400 mt-5 sm:mt-6 text-sm sm:text-base">
                     Already have an account?
                     <a href="/login" class="text-blue-400 hover:underline">Login here</a>
                 </p>
@@ -68,6 +69,7 @@
             }
         });
     </script>
+
 </body>
 
 </html>

@@ -8,41 +8,45 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-zinc-900 text-white min-h-screen flex items-center justify-center p-6">
-  <div class="w-full max-w-xl bg-zinc-800 p-8 rounded-2xl shadow-lg border border-zinc-700">
+<body class="bg-zinc-900 text-white min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-xl bg-zinc-800 p-6 sm:p-8 rounded-2xl shadow-lg border border-zinc-700">
     <!-- Top bar -->
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-semibold text-yellow-400">✏️ Edit Post</h2>
-      <a href="/logout" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-medium transition">Log
-        out</a>
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3 sm:gap-0">
+      <h2 class="text-xl sm:text-2xl font-semibold text-yellow-400">✏️ Edit Post</h2>
+      <a href="/logout"
+        class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-sm font-medium transition text-center w-full sm:w-auto">
+        Log out
+      </a>
     </div>
 
     <!-- Edit form -->
     <form action="/update/<%= post._id %>" method="post" enctype="multipart/form-data" class="space-y-4">
       <textarea name="updatedcontent" rows="5"
-        class="w-full p-4 rounded-lg bg-zinc-900 border border-zinc-700 outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
+        class="w-full p-3 sm:p-4 rounded-lg bg-zinc-900 border border-zinc-700 outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition text-sm sm:text-base"
         placeholder="What's on your mind?"><%= post.content %></textarea>
 
       <!-- Image input -->
       <div>
-        <label class="block mb-2 text-sm font-medium text-white">Update Image (optional)</label>
+        <label class="block mb-2 text-sm sm:text-base font-medium text-white">Update Image (optional)</label>
         <input type="file" name="fileContent"
-          class="w-full text-sm text-white file:bg-zinc-700 file:border-0 file:rounded-lg file:px-3 file:py-2 file:text-sm file:font-medium file:hover:bg-yellow-400 transition"
+          class="w-full text-sm sm:text-base text-white file:bg-zinc-700 file:border-0 file:rounded-lg file:px-3 file:py-2 file:font-medium file:hover:bg-yellow-400 transition"
           accept="image/*">
       </div>
 
       <button type="submit"
-        class="w-full py-3 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-black font-semibold transition">
+        class="w-full py-3 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-black font-semibold transition text-sm sm:text-base">
         Update Post
       </button>
     </form>
 
     <!-- Back button -->
     <a href="/profile/<%= post.userId %>"
-      class="mt-4 block text-center w-full py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-medium transition">
+      class="mt-4 block text-center w-full py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-medium transition text-sm sm:text-base">
       ⬅ Back to Profile
     </a>
   </div>
+
 </body>
 
 </html>

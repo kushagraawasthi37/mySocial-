@@ -9,37 +9,39 @@
 </head>
 
 <body
-    class="bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 min-h-screen flex items-center justify-center text-white">
+    class="bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 min-h-screen flex items-center justify-center text-white p-4">
 
     <!-- Card -->
     <div
-        class="max-w-md w-full bg-zinc-950/80 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl p-8 text-center">
+        class="w-full max-w-md bg-zinc-950/80 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl p-6 sm:p-8 text-center">
 
         <!-- Warning Icon -->
         <div class="mb-4 flex justify-center">
-            <div class="w-14 h-14 flex items-center justify-center rounded-full bg-red-500/20 border border-red-500/30">
-                <span class="text-red-500 text-3xl">⚠️</span>
+            <div
+                class="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-full bg-red-500/20 border border-red-500/30">
+                <span class="text-red-500 text-2xl sm:text-3xl">⚠️</span>
             </div>
         </div>
 
         <!-- Title -->
-        <h2 class="text-2xl font-bold mb-2 text-red-400">Delete File</h2>
-        <p class="text-zinc-400 mb-6">Are you sure you want to delete
-            <span class="text-white font-semibold">"<%= posts.content %>"</span>?
-            This action cannot be undone.
+        <h2 class="text-xl sm:text-2xl font-bold mb-2 text-red-400">Delete File</h2>
+        <p class="text-zinc-400 mb-6 text-sm sm:text-base">
+            Are you sure you want to delete
+            <span class="text-white font-semibold">"<%= posts.content %>"</span>? This action cannot be undone.
         </p>
 
         <!-- Buttons -->
-        <form action="/post-delete/<%= posts._id%>" method="post" class="flex gap-4 justify-center">
+        <form action="/post-delete/<%= posts._id %>" method="post"
+            class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <input type="hidden" name="postId" value="<%= posts._id %>">
 
             <button type="submit"
-                class="px-5 py-3 bg-red-600 hover:bg-red-500 transition rounded-xl shadow-lg font-semibold">
+                class="w-full sm:w-auto px-4 py-2 sm:px-5 sm:py-3 bg-red-600 hover:bg-red-500 transition rounded-xl shadow-lg font-semibold">
                 🗑 Yes, Delete
             </button>
 
             <a href="/profile"
-                class="px-5 py-3 bg-zinc-700 hover:bg-zinc-600 transition rounded-xl shadow-lg font-semibold">
+                class="w-full sm:w-auto px-4 py-2 sm:px-5 sm:py-3 bg-zinc-700 hover:bg-zinc-600 transition rounded-xl shadow-lg font-semibold">
                 ❌ Cancel
             </a>
         </form>
