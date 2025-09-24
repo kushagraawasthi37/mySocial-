@@ -49,7 +49,7 @@ app.use(
     cookie: {
       maxAge: 1000 * 60 * 60,
       httpOnly: true,//must be false for http request on local host
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
   })
