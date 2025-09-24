@@ -24,7 +24,7 @@ exports.isLoggedIn = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    console.error("Auth middleware error:", err);
+    // console.error("Auth middleware error:", err);
     req.flash("error_msg", "Please log in again.");
     res.redirect("/login");
   }

@@ -10,11 +10,7 @@ const crypto = require("crypto");
 exports.getHome = (req, res) => res.render("home");
 exports.getLogin = (req, res) => res.render("login");
 exports.getRegister = (req, res) => res.render("home");
-exports.getForgotPassword = (req, res) => {
-  const success_msg = req.flash("success_msg");
-  const error_msg = req.flash("error_msg");
-  res.render("forgot-password", { success_msg, error_msg });
-};
+exports.getForgotPassword = (req, res) => res.render("forgot-password");
 
 // -------- REGISTER USER --------
 exports.registerUser = async (req, res) => {
@@ -78,7 +74,7 @@ exports.registerUser = async (req, res) => {
 
     res.redirect("/login");
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     req.flash("error_msg", "Something went wrong. Please try again.");
     res.redirect("/register");
   }
@@ -110,7 +106,7 @@ exports.verifyEmail = async (req, res) => {
     req.flash("success_msg", "Email verified successfully. You can now login.");
     res.redirect("/login");
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     req.flash("error_msg", "Something went wrong. Please try again.");
     res.redirect("/login");
   }
@@ -170,7 +166,7 @@ exports.loginUser = async (req, res) => {
     req.flash("success_msg", "Login successful!");
     res.redirect("/profile");
   } catch (err) {
-    console.error("Login error:", err);
+    // console.error("Login error:", err);
     req.flash("error_msg", "Something went wrong. Please try again.");
     res.redirect("/login");
   }
@@ -241,10 +237,6 @@ exports.getResetPasswordPage = async (req, res) => {
       req.flash("error_msg", "Invalid or expired reset link.");
       return res.redirect("/forgot-password");
     }
-    req.flash(
-      "success_msg",
-      "Password reset mail send successful. You can reset your password now!"
-    );
     res.render("reset-password", { token });
   } catch (err) {
     console.error(err);

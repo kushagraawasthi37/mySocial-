@@ -16,26 +16,28 @@
         <h2 class="text-2xl sm:text-3xl font-bold text-center mb-5 sm:mb-6">Login</h2>
 
         <!-- Flash Messages -->
-        <% if (typeof success_msg !=="undefined" && success_msg) { %>
+        <% if (success_msg) { %>
             <div
                 class="flash-message bg-green-500 text-white p-3 rounded-lg mb-4 text-center font-medium shadow-md text-sm sm:text-base">
                 <%= success_msg %>
             </div>
             <% } %>
 
-                <% if (typeof error_msg !=="undefined" && error_msg) { %>
+                <% if (error_msg) { %>
                     <div
                         class="flash-message bg-red-500 text-white p-3 rounded-lg mb-4 text-center font-medium shadow-md text-sm sm:text-base">
                         <%= error_msg %>
                     </div>
                     <% } %>
 
-                        <% if (typeof message !=="undefined" && message) { %>
+                        <% if (message) { %>
                             <div
                                 class="flash-message bg-yellow-500 text-white p-3 rounded-lg mb-4 text-center font-medium shadow-md text-sm sm:text-base">
                                 <%= message %>
                             </div>
                             <% } %>
+                                <!-- Rest of form unchanged -->
+
 
                                 <!-- Form -->
                                 <form action="/login" method="post" class="space-y-4">

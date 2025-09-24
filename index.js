@@ -1,4 +1,3 @@
-// app.js
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
@@ -44,12 +43,12 @@ app.use(cookieParser());
 // Session middleware
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "mySecretKey",
+    secret: process.env.SESSION_SECRET || "secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 1000 * 60 * 60, // 1 hour
-      httpOnly: true,
+      maxAge: 1000 * 60 * 60,
+      httpOnly: true,//must be false for http request on local host
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
@@ -61,9 +60,19 @@ app.use(flash());
 
 // Global variables middleware for EJS
 app.use((req, res, next) => {
-  res.locals.success_msg = req.flash("success_msg")[0] || null;
-  res.locals.error_msg = req.flash("error_msg")[0] || null;
-  res.locals.message = req.flash("message")[0] || null;
+  const successMsgs = req.flash("success_msg");
+  const errorMsgs = req.flash("error_msg");
+  const messageArr = req.flash("message");
+
+  //res.locals: Make message available in EJS views
+
+  // console.log("Flash success_msg:", successMsgs);
+  // console.log("Flash error_msg:", errorMsgs);
+
+  res.locals.success_msg = successMsgs.length > 0 ? successMsgs[0] : null;
+  res.locals.error_msg = errorMsgs.length > 0 ? errorMsgs[0] : null;
+  res.locals.message = messageArr.length > 0 ? messageArr[0] : null;
+
   next();
 });
 

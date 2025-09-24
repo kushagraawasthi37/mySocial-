@@ -25,7 +25,8 @@ router.post("/register", userRegistorValidator(), (req, res) => {
       .array()
       .map((err) => err.msg)
       .join(", ");
-    return res.render("home", { message });
+    req.flash("error_msg", message);
+    return res.redirect("/register"); // Redirect instead of render
   }
 
   //Sab sahi hai to aab register controller ko call kro
@@ -40,11 +41,14 @@ router.post("/login", userLoginValidator(), (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    const message = errors
-      .array()
-      .map((err) => err.msg)
-      .join(", ");
-    return res.render("login", { message });
+    if (!errors.isEmpty()) {
+      const message = errors
+        .array()
+        .map((err) => err.msg)
+        .join(", ");
+      req.flash("error_msg", message);
+      return res.redirect("/login"); // Redirect instead of render
+    }
   }
   //Mtlb jo data dala hai sahi format mai hai aab login  bala chalao
   authController.loginUser(req, res);
