@@ -48,8 +48,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       maxAge: 1000 * 60 * 60,
-      httpOnly: true,//must be false for http request on local host
-      secure: false,
+      httpOnly: true, //must be false for http request on local host
+      secure: true,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
   })
